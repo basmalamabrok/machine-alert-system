@@ -1,0 +1,2134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartFactory IIoT — Digital Twin Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base: #060c14;
+  --bg-surface: #0b1524;
+  --bg-card: #0f1e30;
+  --bg-elevated: #132438;
+  --border: rgba(32,90,140,0.35);
+  --border-glow: rgba(34,211,238,0.3);
+  --cyan: #22d3ee;
+  --cyan-dim: rgba(34,211,238,0.12);
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --green: #22c55e;
+  --slate: #94a3b8;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Space Grotesk', system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body { font-family: var(--sans); background: var(--bg-base); color: #e2e8f0; margin: 0; overflow: hidden; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-surface); }
+::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.35); border-radius: 4px; }
+#root { height: 100vh; display: flex; }
+
+/* SIDEBAR */
+.sidebar { width: 58px; background: var(--bg-surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; transition: width 0.25s; overflow: hidden; }
+.sidebar.expanded { width: 220px; }
+.sidebar-logo { height: 58px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid var(--border); gap: 12px; flex-shrink: 0; }
+.logo-icon { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #0e7490, #22d3ee); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 700; font-size: 11px; color: #fff; flex-shrink: 0; }
+.logo-text { font-size: 13px; font-weight: 700; white-space: nowrap; color: #f1f5f9; }
+.logo-sub { font-size: 10px; color: var(--slate); font-family: var(--mono); white-space: nowrap; }
+.nav-items { flex: 1; padding: 10px 6px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+.nav-btn { display: flex; align-items: center; gap: 12px; padding: 9px 10px; border-radius: 8px; background: none; border: none; cursor: pointer; width: 100%; color: #64748b; transition: all 0.15s; white-space: nowrap; text-align: left; position: relative; }
+.nav-btn:hover { background: rgba(34,211,238,0.07); color: #94a3b8; }
+.nav-btn.active { background: rgba(34,211,238,0.14); color: var(--cyan); border: 1px solid rgba(34,211,238,0.25); }
+.nav-btn .nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+.nav-btn .nav-label { font-size: 12.5px; font-weight: 500; }
+.nav-badge { position: absolute; top: 6px; right: 8px; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; border-radius: 99px; padding: 1px 5px; font-family: var(--mono); }
+.sidebar-user { padding: 10px 10px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.user-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #0891b2, #6366f1); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.sidebar-toggle { width: 58px; height: 34px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #475569; font-size: 18px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+/* MAIN */
+.main-wrap { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* HEADER */
+.header { height: 58px; background: var(--bg-surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 14px; flex-shrink: 0; }
+.header-title { font-size: 14px; font-weight: 700; }
+.header-sub { font-size: 10px; color: var(--slate); font-family: var(--mono); display: flex; align-items: center; gap: 5px; }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 1.4s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.header-chip { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; font-family: var(--mono); border: 1px solid transparent; }
+.chip-red { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.4); color: #f87171; animation: chipBlink 1s infinite; }
+@keyframes chipBlink { 0%,100%{background:rgba(239,68,68,0.12)} 50%{background:rgba(239,68,68,0.3)} }
+.chip-green { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: #4ade80; }
+.chip-amber { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: #fbbf24; }
+.header-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--slate); transition: all 0.15s; }
+.header-btn:hover { border-color: var(--border-glow); color: var(--cyan); }
+.header-clock { font-family: var(--mono); font-size: 12px; color: var(--cyan); }
+
+/* CONTENT */
+.page-content { flex: 1; overflow: auto; }
+.page-pad { padding: 20px; }
+
+/* CARDS */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
+.card-header { padding: 14px 16px 0; display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 12.5px; font-weight: 600; color: #cbd5e1; letter-spacing: 0.04em; text-transform: uppercase; }
+.card-body { padding: 14px 16px; }
+
+/* STAT TILES */
+.stat-tile { border-radius: 12px; padding: 16px; border: 1px solid var(--border); background: var(--bg-card); }
+.stat-val { font-family: var(--mono); font-size: 28px; font-weight: 700; line-height: 1; }
+.stat-label { font-size: 10.5px; color: var(--slate); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-sub { font-size: 10px; color: #475569; margin-top: 4px; font-family: var(--mono); }
+
+/* MACHINE CARDS */
+.m-card { border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card); padding: 14px; cursor: pointer; transition: transform 0.12s, border-color 0.2s; position: relative; }
+.m-card:hover { transform: translateY(-1px); border-color: rgba(34,211,238,0.4); }
+.m-card.status-critical { border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.05); }
+.m-card.status-warning { border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.05); }
+.m-card.status-normal { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.03); }
+.m-card.status-offline { border-color: rgba(100,116,139,0.4); background: rgba(100,116,139,0.04); }
+.m-card.pulse-anim { animation: cardPulse 1.5s infinite; }
+@keyframes cardPulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.3)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
+
+/* STATUS DOTS */
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+.dot.critical { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.dot.warning { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.dot.normal { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot.offline { background: #64748b; }
+.dot.pulse { animation: dotPulse 1s infinite; }
+@keyframes dotPulse { 0%,100%{transform:scale(1); opacity:1} 50%{transform:scale(1.6); opacity:0.6} }
+
+/* HEALTH GAUGE */
+.gauge-wrap { position: relative; display: inline-block; }
+
+/* TOASTS */
+#toast-container { position: fixed; top: 70px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; min-width: 280px; max-width: 360px; display: flex; align-items: flex-start; gap: 10px; pointer-events: all; animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1); box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+@keyframes toastIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+.toast.out { animation: toastOut 0.25s ease-in forwards; }
+@keyframes toastOut { to{transform:translateX(120%);opacity:0} }
+.toast-critical { border-left: 3px solid var(--red); }
+.toast-warning { border-left: 3px solid var(--amber); }
+.toast-info { border-left: 3px solid var(--cyan); }
+.toast-success { border-left: 3px solid var(--green); }
+.toast-icon { font-size: 18px; line-height: 1; }
+.toast-content .toast-title { font-size: 12px; font-weight: 700; color: #f1f5f9; }
+.toast-content .toast-msg { font-size: 11px; color: var(--slate); margin-top: 2px; font-family: var(--mono); }
+.toast-close { margin-left: auto; background: none; border: none; color: #475569; cursor: pointer; font-size: 16px; line-height: 1; padding: 0; }
+
+/* SVG FACTORY */
+.factory-machine { cursor: pointer; transition: all 0.3s; }
+.factory-machine:hover { filter: brightness(1.3); }
+.machine-glow-critical { filter: drop-shadow(0 0 8px rgba(239,68,68,0.9)); animation: glowPulse 1.2s infinite; }
+.machine-glow-warning { filter: drop-shadow(0 0 6px rgba(245,158,11,0.7)); }
+.machine-glow-normal { filter: drop-shadow(0 0 4px rgba(34,197,94,0.5)); }
+.machine-glow-offline { filter: grayscale(1) opacity(0.5); }
+@keyframes glowPulse { 0%,100%{filter:drop-shadow(0 0 5px rgba(239,68,68,0.7))} 50%{filter:drop-shadow(0 0 14px rgba(239,68,68,1))} }
+
+/* SCADA */
+.alarm-item { padding: 8px 12px; border-radius: 8px; font-size: 11px; font-family: var(--mono); border: 1px solid; animation: alarmIn 0.3s ease; }
+@keyframes alarmIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+.alarm-critical { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+.alarm-warning { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.4); color: #fcd34d; }
+.alarm-info { background: rgba(34,211,238,0.08); border-color: rgba(34,211,238,0.3); color: #67e8f9; }
+.alarm-success { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); color: #86efac; }
+
+/* CHARTS */
+.mini-chart { overflow: hidden; border-radius: 4px; }
+
+/* PRODUCTION FLOW */
+.prod-node { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; text-align: center; font-size: 11px; font-weight: 600; transition: all 0.3s; }
+.prod-node.active { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 10px rgba(34,211,238,0.2); }
+.prod-node.stopped { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.1); animation: cardPulse 1.5s infinite; }
+.prod-arrow { color: #334155; font-size: 18px; line-height: 1; display: flex; align-items: center; }
+.prod-arrow.active { color: var(--cyan); }
+.prod-arrow.stopped { color: var(--red); }
+
+/* ENERGY BAR */
+.energy-bar-bg { height: 6px; background: rgba(100,116,139,0.3); border-radius: 3px; overflow: hidden; }
+.energy-bar-fill { height: 100%; border-radius: 3px; transition: width 1s; }
+
+/* SENSOR SIMULATOR */
+.sim-slider { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--cyan) var(--pct,50%), #1e3a4a var(--pct,50%)); outline: none; cursor: pointer; }
+.sim-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--cyan); border: 2px solid var(--bg-base); cursor: pointer; }
+.sim-slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--cyan); border: 2px solid var(--bg-base); cursor: pointer; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .sidebar.expanded { width: 58px; }
+  .sidebar .nav-label, .sidebar .logo-text, .sidebar .logo-sub, .sidebar-user .user-info { display: none; }
+}
+
+/* FILTER CHIP */
+.fchip { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); background: var(--bg-card); color: var(--slate); cursor: pointer; transition: all 0.15s; font-family: var(--mono); }
+.fchip:hover { border-color: rgba(34,211,238,0.4); color: var(--cyan); }
+.fchip.active { background: rgba(34,211,238,0.14); border-color: rgba(34,211,238,0.5); color: var(--cyan); }
+
+/* DETAIL PANEL SLIDER */
+.repair-slider { -webkit-appearance: none; width: 100%; height: 3px; background: #1e3a4a; border-radius: 2px; outline: none; cursor: pointer; }
+.repair-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--cyan); cursor: pointer; }
+.repair-slider::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--cyan); cursor: pointer; }
+
+/* MAINTENANCE BADGES */
+.maint-badge { font-size: 9px; font-weight: 700; font-family: var(--mono); padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+.maint-pending { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+.maint-overdue { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+.maint-progress { background: rgba(34,211,238,0.12); color: var(--cyan); border: 1px solid rgba(34,211,238,0.3); }
+.maint-done { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+
+/* TABLE */
+.data-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.data-table th { padding: 8px 12px; text-align: left; color: #475569; font-weight: 600; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--mono); font-size: 10px; }
+.data-table td { padding: 9px 12px; border-bottom: 1px solid rgba(32,90,140,0.15); color: #94a3b8; }
+.data-table tr:hover td { background: rgba(34,211,238,0.04); }
+.data-table tr:last-child td { border-bottom: none; }
+
+/* SCROLLABLE REGIONS */
+.scroll-region { overflow-y: auto; }
+
+/* BUTTON STYLES */
+.btn { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; font-family: var(--sans); }
+.btn-primary { background: rgba(34,211,238,0.15); border-color: rgba(34,211,238,0.4); color: var(--cyan); }
+.btn-primary:hover { background: rgba(34,211,238,0.25); }
+.btn-danger { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.35); color: #f87171; }
+.btn-danger:hover { background: rgba(239,68,68,0.22); }
+.btn-success { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.35); color: #4ade80; }
+.btn-success:hover { background: rgba(34,197,94,0.22); }
+.btn-ghost { background: transparent; border-color: var(--border); color: var(--slate); }
+.btn-ghost:hover { border-color: rgba(34,211,238,0.3); color: #cbd5e1; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+/* CHAT */
+#chat-panel { position: fixed; bottom: 80px; right: 16px; width: 320px; height: 440px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; z-index: 500; box-shadow: 0 16px 50px rgba(0,0,0,0.6); }
+.chat-header { padding: 12px 16px; background: var(--bg-elevated); border-bottom: 1px solid var(--border); border-radius: 16px 16px 0 0; display: flex; align-items: center; gap: 10px; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.chat-msg { max-width: 88%; padding: 8px 12px; border-radius: 10px; font-size: 11.5px; line-height: 1.45; }
+.chat-msg.ai { background: var(--bg-elevated); border: 1px solid var(--border); color: #cbd5e1; align-self: flex-start; border-radius: 4px 10px 10px 10px; }
+.chat-msg.user { background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.25); color: #a5f3fc; align-self: flex-end; border-radius: 10px 4px 10px 10px; }
+.chat-input-row { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 6px; }
+.chat-input { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 11.5px; color: #e2e8f0; outline: none; font-family: var(--sans); }
+.chat-input:focus { border-color: rgba(34,211,238,0.4); }
+
+/* LOGIN */
+.login-screen { height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse 60% 60% at 50% 40%, rgba(14,116,144,0.18) 0%, var(--bg-base) 70%); }
+.login-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; width: 100%; max-width: 400px; }
+.login-input { width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #e2e8f0; outline: none; font-family: var(--sans); }
+.login-input:focus { border-color: rgba(34,211,238,0.5); }
+.login-select { width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #e2e8f0; outline: none; cursor: pointer; }
+.login-btn { width: 100%; background: linear-gradient(135deg, #0891b2, #22d3ee); color: var(--bg-base); font-weight: 800; font-size: 14px; padding: 13px; border: none; border-radius: 10px; cursor: pointer; letter-spacing: 0.03em; transition: opacity 0.2s; }
+.login-btn:hover { opacity: 0.9; }
+
+/* GRID HELPERS */
+.g-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.g-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.g-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; }
+@media(max-width:1100px){.g-5{grid-template-columns:repeat(3,1fr)}.g-4{grid-template-columns:repeat(2,1fr)}.g-3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.g-5,.g-4,.g-3,.g-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="toast-container"></div>
+
+<script>
+// ====================================================================
+//  CENTRAL STATE ENGINE — Single source of truth for all pages
+// ====================================================================
+
+const MACHINES = [
+  { id:"M001", name:"Hydraulic Press", shortName:"HydPress", zone:"Fabrication", dept:"Fabrication", category:"Press",
+    status:"critical", health:23, temp:112, pressure:187, vibration:8.9, voltage:378,
+    uptime:67, lastMaint:"12 days ago", nextMaint:"Overdue", energyKw:124,
+    prediction:"Seal failure in ~2h", model:"HP-5000X", oee:0.54, mtbf:340, mttr:12,
+    anomalies:["Temp spike +18°C","Pressure drop 12%","Bearing vibration x3"],
+    failureProb:77, rul:2, svgX:130, svgY:110 },
+  { id:"M002", name:"CNC Machine", shortName:"CNC-L3", zone:"Machining", dept:"Machining", category:"CNC",
+    status:"warning", health:61, temp:74, pressure:142, vibration:3.2, voltage:382,
+    uptime:89, lastMaint:"5 days ago", nextMaint:"In 3 days", energyKw:89,
+    prediction:"Coolant pump wear in ~48h", model:"MAZAK-QT350", oee:0.78, mtbf:520, mttr:8,
+    anomalies:["Vibration +40%","Coolant flow -8%"],
+    failureProb:39, rul:48, svgX:300, svgY:110 },
+  { id:"M003", name:"Conveyor Belt", shortName:"Conv-C2", zone:"Assembly", dept:"Assembly", category:"Conveyor",
+    status:"normal", health:88, temp:42, pressure:98, vibration:1.1, voltage:391,
+    uptime:97, lastMaint:"2 days ago", nextMaint:"In 18 days", energyKw:34,
+    prediction:"No issues detected", model:"CB-2400", oee:0.92, mtbf:890, mttr:5,
+    anomalies:[], failureProb:8, rul:720, svgX:480, svgY:200 },
+  { id:"M004", name:"Welding Robot", shortName:"WeldR7", zone:"Welding", dept:"Welding", category:"Robot",
+    status:"normal", health:92, temp:58, pressure:124, vibration:0.8, voltage:388,
+    uptime:99, lastMaint:"1 day ago", nextMaint:"In 29 days", energyKw:67,
+    prediction:"Optimal performance", model:"KUKA-KR210", oee:0.96, mtbf:1250, mttr:3,
+    anomalies:[], failureProb:4, rul:2160, svgX:300, svgY:280 },
+  { id:"M005", name:"Compressor", shortName:"Comp-K5", zone:"Utilities", dept:"Utilities", category:"Compressor",
+    status:"warning", health:54, temp:89, pressure:231, vibration:4.7, voltage:375,
+    uptime:78, lastMaint:"9 days ago", nextMaint:"In 1 day", energyKw:210,
+    prediction:"Oil filter degradation ~72h", model:"ATLAS-GA75", oee:0.68, mtbf:410, mttr:14,
+    anomalies:["Pressure surge 15%","Temp elevated"],
+    failureProb:46, rul:72, svgX:130, svgY:280 },
+  { id:"M006", name:"Injection Molder", shortName:"InjMold", zone:"Fabrication", dept:"Plastics", category:"Molder",
+    status:"normal", health:79, temp:195, pressure:1240, vibration:2.1, voltage:393,
+    uptime:94, lastMaint:"4 days ago", nextMaint:"In 11 days", energyKw:176,
+    prediction:"Heater band wear in ~7 days", model:"ENGEL-E2000", oee:0.81, mtbf:630, mttr:9,
+    anomalies:["Heater zone 3 temp drift"],
+    failureProb:14, rul:168, svgX:480, svgY:110 },
+  { id:"M007", name:"Pump Station", shortName:"PumpP9", zone:"Utilities", dept:"Utilities", category:"Pump",
+    status:"offline", health:0, temp:22, pressure:0, vibration:0, voltage:0,
+    uptime:0, lastMaint:"3 days ago", nextMaint:"Scheduled maintenance", energyKw:0,
+    prediction:"Offline – scheduled maintenance", model:"GRUNDFOS-CR", oee:0, mtbf:0, mttr:0,
+    anomalies:[], failureProb:0, rul:0, svgX:480, svgY:300 },
+  { id:"M008", name:"Laser Cutter", shortName:"LaserL1", zone:"Fabrication", dept:"Fabrication", category:"Laser",
+    status:"normal", health:96, temp:31, pressure:82, vibration:0.3, voltage:396,
+    uptime:99, lastMaint:"Today", nextMaint:"In 30 days", energyKw:144,
+    prediction:"All systems nominal", model:"TRUMPF-3030", oee:0.94, mtbf:1100, mttr:4,
+    anomalies:[], failureProb:2, rul:2880, svgX:300, svgY:200 },
+];
+
+let ALERTS = [
+  { id:1001, machine:"Hydraulic Press", type:"critical", msg:"Critical temp 112°C (limit 95°C)", time:"2 min ago", ack:false, resolved:false, timestamp:Date.now()-120000 },
+  { id:1002, machine:"Hydraulic Press", type:"critical", msg:"Seal failure predicted within 2h (AI)", time:"4 min ago", ack:false, resolved:false, timestamp:Date.now()-240000 },
+  { id:1003, machine:"Compressor", type:"warning", msg:"Oil filter differential pressure rising", time:"18 min ago", ack:false, resolved:false, timestamp:Date.now()-1080000 },
+  { id:1004, machine:"CNC Machine", type:"warning", msg:"Coolant pump efficiency 92%", time:"34 min ago", ack:true, resolved:false, timestamp:Date.now()-2040000 },
+];
+
+let machineHistory = {};
+function initHistory() {
+  MACHINES.forEach(m => {
+    machineHistory[m.id] = {
+      temp: Array(200).fill(m.temp).map((_,i)=>m.temp+(Math.sin(i*0.1)*3)+(Math.random()*2-1)),
+      vibration: Array(200).fill(m.vibration).map((_,i)=>m.vibration+(Math.sin(i*0.2)*0.7)+Math.random()*0.6),
+      pressure: Array(200).fill(m.pressure).map((_,i)=>m.pressure+(Math.random()*6-3)),
+      energy: Array(60).fill(m.energyKw).map((_,i)=>m.energyKw+(Math.random()*10-5)),
+    };
+  });
+}
+initHistory();
+
+let anomalyLogs = [];
+let activityLog = [];
+let eventTimeline = [];
+let maintenanceTasks = [
+  { id:"maint1", machineId:"M001", machineName:"Hydraulic Press", task:"Replace seals and filters", dueDate:new Date(Date.now()+3*86400000).toISOString().slice(0,10), status:"overdue", assignedTo:"Technician A", priority:"critical" },
+  { id:"maint2", machineId:"M005", machineName:"Compressor", task:"Oil change & filter replacement", dueDate:new Date(Date.now()-2*86400000).toISOString().slice(0,10), status:"overdue", assignedTo:"Engineer B", priority:"high" },
+  { id:"maint3", machineId:"M002", machineName:"CNC Machine", task:"Coolant pump inspection", dueDate:new Date(Date.now()+5*86400000).toISOString().slice(0,10), status:"pending", assignedTo:"Technician C", priority:"medium" },
+  { id:"maint4", machineId:"M006", machineName:"Injection Molder", task:"Heater band check", dueDate:new Date(Date.now()+8*86400000).toISOString().slice(0,10), status:"pending", assignedTo:"Engineer A", priority:"low" },
+];
+let chatMessages = [{ role:"ai", text:"🟢 SmartFactory AI online. Real-time Digital Twin active. Ask about any machine, zone, prediction, or production status." }];
+
+let fleetHealthHistory = Array(30).fill(72).map(()=>65+Math.random()*25);
+let fleetEnergyHistory = Array(30).fill(620).map(()=>550+Math.random()*150);
+
+// App state
+let appState = {
+  page: "dashboard",
+  sidebarOpen: true,
+  chatOpen: false,
+  selectedMachine: null,
+  machineFilter: "all",
+  trendParam: "temp",
+  trendSamples: 60,
+  trendMachineId: "M001",
+  simMachineId: "M001",
+  isAuthenticated: false,
+  role: "Admin",
+  factoryZoom: 1,
+  selectedAlertFilter: "all",
+};
+
+// ====================================================================
+//  HELPERS
+// ====================================================================
+
+function addAnomalyLog(machName, desc) {
+  anomalyLogs.unshift({ id:Date.now(), machine:machName, description:desc, timestamp:Date.now(), resolved:false });
+  if(anomalyLogs.length>200) anomalyLogs.pop();
+}
+function addActivityLog(action, details) {
+  const entry = { id:Date.now(), action, details, user:appState.role||"System", timestamp:Date.now() };
+  activityLog.unshift(entry);
+  eventTimeline.unshift(entry);
+  if(activityLog.length>300) activityLog.pop();
+  if(eventTimeline.length>100) eventTimeline.pop();
+}
+function addEventTimeline(icon, msg, type="info") {
+  eventTimeline.unshift({ id:Date.now(), icon, msg, type, timestamp:Date.now() });
+  if(eventTimeline.length>100) eventTimeline.pop();
+}
+
+const STATUS_COLORS = {
+  critical:{ border:"#ef4444", bg:"rgba(239,68,68,0.07)", text:"#f87171", dot:"critical", badge:"rgba(239,68,68,0.15)", badgeText:"#fca5a5", svgFill:"#7f1d1d", svgStroke:"#ef4444" },
+  warning:{ border:"#f59e0b", bg:"rgba(245,158,11,0.07)", text:"#fbbf24", dot:"warning", badge:"rgba(245,158,11,0.15)", badgeText:"#fcd34d", svgFill:"#78350f", svgStroke:"#f59e0b" },
+  normal:{ border:"#22c55e", bg:"rgba(34,197,94,0.04)", text:"#4ade80", dot:"normal", badge:"rgba(34,197,94,0.12)", badgeText:"#86efac", svgFill:"#14532d", svgStroke:"#22c55e" },
+  offline:{ border:"#475569", bg:"rgba(71,85,105,0.06)", text:"#64748b", dot:"offline", badge:"rgba(71,85,105,0.15)", badgeText:"#94a3b8", svgFill:"#1e293b", svgStroke:"#475569" },
+};
+
+function statusDot(status, pulse=false) {
+  return `<span class="dot ${status}${pulse&&status==='critical'?' pulse':''}"></span>`;
+}
+
+function sparkSVG(data, color="#22d3ee", h=28, w=70) {
+  if(!data||!data.length) return "";
+  const d=data.slice(-30);
+  const mn=Math.min(...d), mx=Math.max(...d);
+  const rng=mx-mn||1;
+  const pts=d.map((v,i)=>`${(i/(d.length-1))*w},${h-((v-mn)/rng)*(h-3)}`).join(" ");
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline fill="none" stroke="${color}" stroke-width="1.5" points="${pts}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+function areaSVG(data, color="#22d3ee", h=80) {
+  if(!data||!data.length) return "";
+  const w=100;
+  const mn=Math.min(...data)*0.93, mx=Math.max(...data)*1.07;
+  const rng=mx-mn||1;
+  const pts=data.map((v,i)=>`${(i/(data.length-1))*w},${h-((v-mn)/rng)*(h-8)}`).join(" ");
+  const id=`ag${Math.random().toString(36).slice(2,7)}`;
+  return `<svg width="100%" height="${h}" viewBox="0 0 100 ${h}" preserveAspectRatio="none">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.4"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon fill="url(#${id})" points="0,${h} ${pts} 100,${h}"/>
+    <polyline fill="none" stroke="${color}" stroke-width="0.9" points="${pts}"/>
+  </svg>`;
+}
+
+function gaugeHTML(val, sz=50) {
+  const r=sz/2-5, cx=sz/2, cy=sz/2;
+  const circ=2*Math.PI*r, arc=circ*0.72;
+  const fill=arc*(Math.max(0,val)/100);
+  const color=val>75?"#22c55e":val>45?"#f59e0b":val>0?"#ef4444":"#475569";
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#1e3a4a" stroke-width="4.5" stroke-dasharray="${arc} ${circ}" stroke-linecap="round" transform="rotate(-226 ${cx} ${cy})"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="4.5" stroke-dasharray="${fill} ${circ}" stroke-linecap="round" transform="rotate(-226 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy+1}" text-anchor="middle" dominant-baseline="middle" fill="${color}" font-size="${sz>50?14:11}" font-weight="700" font-family="IBM Plex Mono">${val>0?val:val===0&&val!==''?'0':'—'}</text>
+  </svg>`;
+}
+
+function barHTML(val, max, color="#22d3ee") {
+  const pct=Math.min(100, (val/max)*100);
+  const c = pct>80 ? "#ef4444" : pct>60 ? "#f59e0b" : color;
+  return `<div class="energy-bar-bg"><div class="energy-bar-fill" style="width:${pct}%;background:${c}"></div></div>`;
+}
+
+function fmtTime(ts) {
+  const d=Date.now()-ts;
+  if(d<60000) return "just now";
+  if(d<3600000) return `${Math.floor(d/60000)}m ago`;
+  if(d<86400000) return `${Math.floor(d/3600000)}h ago`;
+  return `${Math.floor(d/86400000)}d ago`;
+}
+
+function fmtDate(ts) {
+  return new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+
+function totalEnergy() { return MACHINES.reduce((a,m)=>a+m.energyKw,0); }
+
+// ====================================================================
+//  TOAST NOTIFICATIONS
+// ====================================================================
+
+const toastQueue = [];
+let toastRunning = false;
+
+function showToast(icon, title, msg, type="info") {
+  toastQueue.push({icon, title, msg, type});
+  if(!toastRunning) processToastQueue();
+}
+
+function processToastQueue() {
+  if(!toastQueue.length) { toastRunning = false; return; }
+  toastRunning = true;
+  const t = toastQueue.shift();
+  const id = "t" + Date.now();
+  const container = document.getElementById("toast-container");
+  if(!container) return;
+  const el = document.createElement("div");
+  el.id = id;
+  el.className = `toast toast-${t.type}`;
+  el.innerHTML = `<span class="toast-icon">${t.icon}</span><div class="toast-content"><div class="toast-title">${t.title}</div><div class="toast-msg">${t.msg}</div></div><button class="toast-close" onclick="dismissToast('${id}')">×</button>`;
+  container.appendChild(el);
+  setTimeout(()=>dismissToast(id), 4200);
+  setTimeout(processToastQueue, 300);
+}
+
+function dismissToast(id) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.add("out");
+  setTimeout(()=>el.remove(), 280);
+}
+
+// ====================================================================
+//  REPAIR / ADJUST LOGIC
+// ====================================================================
+
+function repairMachine(machineId) {
+  const m = MACHINES.find(x=>x.id===machineId);
+  if(!m) return;
+  const oldH = m.health;
+  m.health = 92; m.status = "normal"; m.failureProb = 8;
+  m.temp = Math.max(35, m.temp-45);
+  m.vibration = Math.max(0.5, m.vibration-5.5);
+  m.pressure = Math.min(1200, Math.max(80, m.pressure-40));
+  m.voltage = 388; m.uptime = Math.min(99, m.uptime+25);
+  m.prediction = "✅ Repaired — all systems nominal";
+  m.anomalies = []; m.rul = 720;
+  ALERTS = ALERTS.filter(a=>a.machine!==m.name||a.ack===true);
+  ALERTS.unshift({ id:Date.now(), machine:m.name, type:"info", msg:`🛠️ Repaired by ${appState.role} — health ${oldH}%→92%`, time:"just now", ack:false, resolved:true, timestamp:Date.now() });
+  addActivityLog("Repair", `Full repair: ${m.name} (${m.id}) | Health ${oldH}%→92%`);
+  addEventTimeline("🛠️", `${m.name} repaired by ${appState.role}`, "success");
+  for(let i=0;i<12;i++) {
+    machineHistory[m.id].temp.push(m.temp); machineHistory[m.id].temp.shift();
+    machineHistory[m.id].vibration.push(m.vibration); machineHistory[m.id].vibration.shift();
+    machineHistory[m.id].pressure.push(m.pressure); machineHistory[m.id].pressure.shift();
+  }
+  showToast("🛠️", `${m.name} Repaired`, `Health restored to 92% by ${appState.role}`, "success");
+  render();
+}
+
+function adjustMachineParam(machineId, param, value) {
+  const m = MACHINES.find(x=>x.id===machineId);
+  if(!m) return;
+  if(param==="temp") m.temp = Math.min(145, Math.max(15, parseFloat(value)));
+  if(param==="vibration") m.vibration = Math.min(14, Math.max(0.1, parseFloat(value)));
+  if(param==="pressure") m.pressure = Math.min(1450, Math.max(40, parseFloat(value)));
+  if(param==="voltage") m.voltage = Math.min(420, Math.max(340, parseFloat(value)));
+  recalcHealth(m);
+  addActivityLog("Sensor Adjust", `${param}=${value} on ${m.name}`);
+  updateLiveValues(m);
+}
+
+function recalcHealth(m) {
+  if(m.status==="offline") return;
+  const tN = Math.max(0, 100-Math.max(0,(m.temp-85))*2.2);
+  const vN = Math.max(0, 100-m.vibration*7.5);
+  const pN = m.pressure>1200 ? Math.max(0,100-(m.pressure-1200)*0.25) : m.pressure<60?50:90;
+  m.health = Math.min(99, Math.max(0, Math.floor(tN*0.4+vN*0.3+pN*0.2)));
+  const old = m.status;
+  if(m.health<=28) m.status="critical"; else if(m.health<=60) m.status="warning"; else m.status="normal";
+  m.failureProb = Math.min(99, Math.max(1, 100-m.health));
+  if(m.status==="critical") m.prediction=`⚠️ Failure risk ${m.failureProb}% — intervene now`;
+  else if(m.status==="warning") m.prediction=`⚠️ Degradation — service within 48h`;
+  else m.prediction=`✅ Nominal — next check in 5 days`;
+  const anoms=[];
+  if(m.temp>105) anoms.push(`🔥 Temp ${m.temp.toFixed(1)}°C critical`);
+  if(m.vibration>5.5) anoms.push(`⚠️ Vibration ${m.vibration.toFixed(1)} mm/s high`);
+  if(m.pressure>1320) anoms.push(`💥 Pressure ${m.pressure.toFixed(0)} bar spike`);
+  m.anomalies = anoms.slice(0,3);
+  if(m.status!==old && m.status==="critical") {
+    showToast("🚨", `${m.name} CRITICAL`, `Health ${m.health}% — immediate action required`, "critical");
+    addEventTimeline("🚨", `${m.name} entered CRITICAL state`, "critical");
+  } else if(m.status!==old && m.status==="warning") {
+    showToast("⚠️", `${m.name} Warning`, `Health ${m.health}% — monitor closely`, "warning");
+    addEventTimeline("⚠️", `${m.name} entered WARNING state`, "warning");
+  }
+}
+
+// Update live value displays without full re-render
+function updateLiveValues(m) {
+  const sel = [
+    [`#lv-temp-${m.id}`, `${m.temp.toFixed(1)}°C`],
+    [`#lv-vib-${m.id}`, `${m.vibration.toFixed(2)}`],
+    [`#lv-press-${m.id}`, `${m.pressure.toFixed(0)}`],
+    [`#lv-health-${m.id}`, `${m.health}%`],
+    [`#lv-status-${m.id}`, m.status.toUpperCase()],
+  ];
+  sel.forEach(([sel2, val])=>{ const el=document.querySelector(sel2); if(el) el.textContent=val; });
+}
+
+function exportCSV(data, filename, cols) {
+  const rows = [cols.join(","), ...data.map(r=>cols.map(c=>`"${String(r[c]??'').replace(/"/g,'""')}"`).join(","))];
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([rows.join("\n")], {type:"text/csv"}));
+  a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+
+// ====================================================================
+//  REAL-TIME SIMULATION ENGINE
+// ====================================================================
+
+let simInterval = null;
+function startSim() {
+  if(simInterval) clearInterval(simInterval);
+  simInterval = setInterval(() => {
+    const newAlerts = [];
+    MACHINES.forEach(m => {
+      if(m.status==="offline") return;
+      m.temp    = +(Math.min(145, Math.max(15, m.temp    + (Math.random()-0.48)*2.2))).toFixed(1);
+      m.vibration = +(Math.min(14, Math.max(0.2, m.vibration + (Math.random()-0.5)*0.35))).toFixed(2);
+      m.pressure  = +(Math.min(1450, Math.max(40, m.pressure + (Math.random()-0.5)*4.0))).toFixed(0);
+      m.energyKw  = +(Math.max(0, m.energyKw + (Math.random()-0.5)*4)).toFixed(1);
+      recalcHealth(m);
+      if(machineHistory[m.id]) {
+        machineHistory[m.id].temp.push(m.temp); machineHistory[m.id].temp.shift();
+        machineHistory[m.id].vibration.push(m.vibration); machineHistory[m.id].vibration.shift();
+        machineHistory[m.id].pressure.push(m.pressure); machineHistory[m.id].pressure.shift();
+        machineHistory[m.id].energy.push(m.energyKw); machineHistory[m.id].energy.shift();
+      }
+      const now = Date.now();
+      if(m.temp>107 && !ALERTS.some(a=>a.machine===m.name&&a.msg.includes("Overheat")&&now-a.timestamp<120000)) {
+        newAlerts.push({ id:now, machine:m.name, type:"critical", msg:`🔥 Overheat: ${m.temp}°C (limit 95°C)`, time:"just now", ack:false, resolved:false, timestamp:now });
+        addAnomalyLog(m.name, `Overheat ${m.temp}°C`);
+        showToast("🔥", `${m.name} Overheated`, `Temperature ${m.temp}°C exceeds limit`, "critical");
+        addEventTimeline("🔥", `${m.name}: Overheat ${m.temp}°C`, "critical");
+      }
+      if(m.vibration>6.5 && !ALERTS.some(a=>a.machine===m.name&&a.msg.includes("vibration")&&now-a.timestamp<180000)) {
+        newAlerts.push({ id:now+1, machine:m.name, type:"critical", msg:`⚠️ Severe vibration ${m.vibration} mm/s`, time:"just now", ack:false, resolved:false, timestamp:now });
+        showToast("⚠️", `${m.name} Vibration`, `${m.vibration} mm/s — check bearings`, "warning");
+      }
+      if(m.energyKw > 250 && !ALERTS.some(a=>a.machine===m.name&&a.msg.includes("Energy")&&now-a.timestamp<300000)) {
+        newAlerts.push({ id:now+2, machine:m.name, type:"warning", msg:`⚡ Energy spike: ${m.energyKw} kW`, time:"just now", ack:false, resolved:false, timestamp:now });
+      }
+    });
+    if(newAlerts.length) ALERTS = [...newAlerts, ...ALERTS].slice(0,80);
+    const active = MACHINES.filter(m=>m.status!=="offline");
+    const avgH = active.length ? active.reduce((a,m)=>a+m.health,0)/active.length : 70;
+    fleetHealthHistory.push(avgH); fleetHealthHistory.shift();
+    fleetEnergyHistory.push(totalEnergy()); fleetEnergyHistory.shift();
+    renderLiveUpdates();
+  }, 4000);
+}
+
+// Partial update — update only changing numbers without full re-render (performance)
+function renderLiveUpdates() {
+  const page = appState.page;
+  // Always update header clock and critical count
+  const clockEl = document.getElementById("header-clock");
+  if(clockEl) clockEl.textContent = new Date().toLocaleTimeString();
+  const critEl = document.getElementById("header-crit");
+  const critCount = ALERTS.filter(a=>!a.ack&&a.type==="critical").length;
+  if(critEl) { critEl.textContent = `${critCount} CRITICAL`; critEl.style.display = critCount>0?"flex":"none"; }
+  const unackBadge = document.getElementById("nav-alert-badge");
+  if(unackBadge) { const n=ALERTS.filter(a=>!a.ack&&a.type!=="info").length; unackBadge.textContent=n; unackBadge.style.display=n>0?"":"none"; }
+  if(page==="factory") { renderFactoryPage(); return; }
+  if(page==="scada") { renderSCADAPage(); return; }
+  render();
+}
+
+// ====================================================================
+//  MAIN RENDER
+// ====================================================================
+
+function render() {
+  const root = document.getElementById("root");
+  if(!appState.isAuthenticated) {
+    root.innerHTML = renderLogin();
+    setTimeout(() => {
+      const btn = document.getElementById("loginBtn");
+      if(btn) btn.onclick = () => {
+        const rs = document.getElementById("roleSelect");
+        if(rs) appState.role = rs.value;
+        appState.isAuthenticated = true;
+        startSim();
+        addActivityLog("Login", `User logged in as ${appState.role}`);
+        addEventTimeline("🔐", `${appState.role} logged in`, "info");
+        render();
+      };
+    }, 30);
+    return;
+  }
+
+  root.innerHTML = `
+    <aside class="sidebar${appState.sidebarOpen?' expanded':''}" id="sidebar">
+      ${renderSidebar()}
+    </aside>
+    <div class="main-wrap">
+      ${renderHeader()}
+      <div class="page-content" id="page-content"></div>
+    </div>
+    ${appState.chatOpen ? renderChatPanel() : ''}
+    <button id="chat-fab" onclick="toggleChat()" style="position:fixed;bottom:20px;right:20px;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#0891b2,#22d3ee);border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(34,211,238,0.4);z-index:400;transition:transform 0.2s">💬</button>
+  `;
+
+  renderPageIntoContent();
+  bindGlobalEvents();
+}
+
+function renderPageIntoContent() {
+  const container = document.getElementById("page-content");
+  if(!container) return;
+  switch(appState.page) {
+    case "dashboard":   container.innerHTML = renderDashboard(); break;
+    case "machines":    container.innerHTML = renderMachinesPage(); break;
+    case "factory":     renderFactoryPage(); break;
+    case "alerts":      container.innerHTML = renderAlertsPage(); break;
+    case "analytics":   container.innerHTML = renderAnalyticsPage(); break;
+    case "predictions": container.innerHTML = renderPredictionsPage(); break;
+    case "maintenance": container.innerHTML = renderMaintenancePage(); break;
+    case "scada":       renderSCADAPage(); break;
+    case "energy":      container.innerHTML = renderEnergyPage(); break;
+    case "simulator":   container.innerHTML = renderSimulatorPage(); break;
+    case "logs":        container.innerHTML = renderLogsPage(); break;
+  }
+  bindPageEvents();
+}
+
+function bindGlobalEvents() {
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.onclick = () => { appState.page = btn.dataset.page; appState.selectedMachine = null; render(); };
+  });
+  const tog = document.getElementById("sidebar-toggle");
+  if(tog) tog.onclick = () => { appState.sidebarOpen = !appState.sidebarOpen; render(); };
+  document.getElementById("header-crit")?.addEventListener("click", ()=>{ appState.page="alerts"; render(); });
+  if(appState.chatOpen) bindChatEvents();
+}
+
+// ====================================================================
+//  SIDEBAR
+// ====================================================================
+
+function renderSidebar() {
+  const nav = [
+    { id:"dashboard", icon:"⬡", label:"Dashboard" },
+    { id:"factory", icon:"🏭", label:"Digital Twin" },
+    { id:"scada", icon:"📡", label:"Control Room" },
+    { id:"machines", icon:"⚙️", label:"Machines" },
+    { id:"alerts", icon:"🔔", label:"Alert Center", badge:ALERTS.filter(a=>!a.ack&&a.type!=="info").length },
+    { id:"analytics", icon:"📊", label:"Analytics & OEE" },
+    { id:"predictions", icon:"🧠", label:"AI Predictions" },
+    { id:"maintenance", icon:"🔧", label:"Maintenance" },
+    { id:"energy", icon:"⚡", label:"Energy Mgmt" },
+    { id:"simulator", icon:"🎛️", label:"Sensor Simulator" },
+    { id:"logs", icon:"📜", label:"Activity Logs" },
+  ];
+  return `
+    <div class="sidebar-logo">
+      <div class="logo-icon">SF</div>
+      <div><div class="logo-text">SmartFactory</div><div class="logo-sub">Digital Twin v2.0</div></div>
+    </div>
+    <nav class="nav-items">
+      ${nav.map(n=>`<button class="nav-btn${appState.page===n.id?' active':''}" data-page="${n.id}">
+        <span class="nav-icon">${n.icon}</span>
+        <span class="nav-label">${n.label}</span>
+        ${n.badge>0 ? `<span class="nav-badge" id="${n.id==='alerts'?'nav-alert-badge':''}">${n.badge}</span>` : ''}
+      </button>`).join('')}
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar">${appState.role[0]}</div>
+      <div class="user-info" style="min-width:0">
+        <div style="font-size:12px;font-weight:600;color:#f1f5f9">${appState.role}</div>
+        <div style="font-size:10px;color:#475569;font-family:var(--mono)">IIoT Platform</div>
+      </div>
+    </div>
+    <button class="sidebar-toggle" id="sidebar-toggle">${appState.sidebarOpen?'◂':'▸'}</button>
+  `;
+}
+
+// ====================================================================
+//  HEADER
+// ====================================================================
+
+function renderHeader() {
+  const critCount = ALERTS.filter(a=>!a.ack&&a.type==="critical").length;
+  const conveyorOff = MACHINES.find(m=>m.id==="M003"&&m.status==="offline");
+  return `
+    <header class="header">
+      <div>
+        <div class="header-title">SmartFactory IIoT Platform</div>
+        <div class="header-sub"><span class="live-dot"></span>Real-time Digital Twin&nbsp;·&nbsp;<span id="header-clock">${new Date().toLocaleTimeString()}</span></div>
+      </div>
+      ${conveyorOff ? `<div class="header-chip chip-red" style="animation:chipBlink 0.8s infinite">🛑 PRODUCTION STOPPED</div>` : ''}
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <div class="header-chip chip-green">LIVE</div>
+        <div id="header-crit" class="header-chip chip-red" style="cursor:pointer;display:${critCount>0?'flex':'none'};gap:4px">${critCount} CRITICAL</div>
+        <span style="font-size:11px;color:#475569;font-family:var(--mono);display:none" id="header-energy">⚡ ${totalEnergy()} kW</span>
+        <button class="header-btn" title="Toggle theme" onclick="document.body.style.filter=document.body.style.filter?'':'invert(1) hue-rotate(180deg)'">◑</button>
+      </div>
+    </header>
+  `;
+}
+
+// ====================================================================
+//  DASHBOARD PAGE
+// ====================================================================
+
+function renderDashboard() {
+  const active = MACHINES.filter(m=>m.status!=="offline");
+  const avgH = active.length ? Math.round(active.reduce((a,m)=>a+m.health,0)/active.length) : 0;
+  const critN = MACHINES.filter(m=>m.status==="critical").length;
+  const warnN = MACHINES.filter(m=>m.status==="warning").length;
+  const normN = MACHINES.filter(m=>m.status==="normal").length;
+  const offN  = MACHINES.filter(m=>m.status==="offline").length;
+  const avgOEE = (active.reduce((a,m)=>a+m.oee,0)/(active.length||1)*100).toFixed(1);
+  const totalE = totalEnergy();
+  const convOff = MACHINES.find(m=>m.id==="M003"&&m.status==="offline");
+
+  return `<div class="page-pad" style="display:flex;flex-direction:column;gap:16px">
+    ${convOff?`<div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.5);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;animation:chipBlink 1s infinite">
+      <span style="font-size:20px">🛑</span><div><div style="font-weight:700;color:#f87171;font-size:13px">PRODUCTION LINE STOPPED</div><div style="font-size:11px;color:#94a3b8;font-family:var(--mono)">Conveyor Belt offline — all downstream stages halted</div></div>
+    </div>`:''}
+    <div class="g-5">
+      <div class="stat-tile" style="border-color:rgba(34,211,238,0.3);background:rgba(34,211,238,0.05)">
+        <div class="stat-val" style="color:#22d3ee">${avgH}%</div>
+        <div class="stat-label">Fleet Health</div>
+        <div class="stat-sub">Live avg — ${active.length} active</div>
+      </div>
+      <div class="stat-tile" style="border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.05)">
+        <div class="stat-val" style="color:#f87171">${critN}</div>
+        <div class="stat-label">Critical</div>
+        <div class="stat-sub">Immediate action</div>
+      </div>
+      <div class="stat-tile" style="border-color:rgba(245,158,11,0.35);background:rgba(245,158,11,0.05)">
+        <div class="stat-val" style="color:#fbbf24">${warnN}</div>
+        <div class="stat-label">Warnings</div>
+        <div class="stat-sub">Monitor closely</div>
+      </div>
+      <div class="stat-tile" style="border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.04)">
+        <div class="stat-val" style="color:#4ade80">${avgOEE}%</div>
+        <div class="stat-label">OEE</div>
+        <div class="stat-sub">Overall efficiency</div>
+      </div>
+      <div class="stat-tile" style="border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.05)">
+        <div class="stat-val" style="color:#a78bfa">${totalE}</div>
+        <div class="stat-label">Energy kW</div>
+        <div class="stat-sub">Live consumption</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;min-width:0">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;font-weight:600;color:#cbd5e1">Machine Overview</span>
+          <button class="btn btn-ghost btn-sm" onclick="setPage('machines')">View all →</button>
+        </div>
+        <div class="g-3">${MACHINES.slice(0,6).map(renderMachineCard).join('')}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Fleet Health (30s)</span></div>
+          <div class="card-body"><div style="height:70px">${areaSVG(fleetHealthHistory,"#22d3ee",70)}</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent Alerts</span><button class="btn btn-ghost btn-sm" onclick="setPage('alerts')">All</button></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:7px">
+            ${ALERTS.filter(a=>!a.ack).slice(0,4).map(a=>`
+              <div style="background:${a.type==='critical'?'rgba(239,68,68,0.1)':'rgba(245,158,11,0.08)'};border:1px solid ${a.type==='critical'?'rgba(239,68,68,0.4)':'rgba(245,158,11,0.3)'};border-radius:8px;padding:8px 10px">
+                <div style="display:flex;align-items:center;gap:6px">
+                  ${statusDot(a.type==='critical'?'critical':'warning', true)}
+                  <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:${a.type==='critical'?'#f87171':'#fbbf24'}">${a.type}</span>
+                  <span style="font-size:10px;color:#475569;margin-left:auto;font-family:var(--mono)">${a.time}</span>
+                </div>
+                <div style="font-size:11px;color:#94a3b8;margin-top:3px">${a.msg}</div>
+              </div>`).join('') || '<div style="color:#475569;font-size:12px;text-align:center;padding:12px">No active alerts</div>'}
+          </div>
+        </div>
+        <div class="card" style="background:linear-gradient(135deg,rgba(6,182,212,0.08),rgba(99,102,241,0.06))">
+          <div class="card-body">
+            <div style="font-size:12px;font-weight:600;color:#22d3ee;margin-bottom:6px">🧠 AI Insight</div>
+            <div style="font-size:11.5px;color:#94a3b8;line-height:1.5">${MACHINES[0].name} health ${MACHINES[0].health}% — ${MACHINES[0].prediction}. ${critN} machine${critN!==1?'s':''} need immediate attention.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Production Flow</span></div>
+          <div class="card-body">${renderProductionFlow(true)}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setPage(p) { appState.page=p; appState.selectedMachine=null; render(); }
+
+function renderProductionFlow(compact=false) {
+  const conveyor = MACHINES.find(m=>m.id==="M003");
+  const stopped = conveyor?.status==="offline";
+  const stages = ["Raw Material","Cutting","Machining","Welding","Pressing","Assembly","Packaging"];
+  if(compact) {
+    return `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+      ${stages.map((s,i)=>`
+        <div class="prod-node${stopped&&i>0?' stopped':' active'}" style="font-size:10px;padding:4px 8px">${s}</div>
+        ${i<stages.length-1?`<div class="prod-arrow${stopped&&i>=0?' stopped':' active'}" style="font-size:12px">→</div>`:''}
+      `).join('')}
+    </div>
+    ${stopped?`<div style="margin-top:8px;font-size:11px;color:#f87171;font-weight:700;font-family:var(--mono);text-align:center">⛔ PRODUCTION LINE STOPPED</div>`:''}`;
+  }
+  return `<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;flex-wrap:wrap">
+    ${stages.map((s,i)=>`
+      <div class="prod-node${stopped&&i>0?' stopped':' active'}" style="min-width:80px">${s}</div>
+      ${i<stages.length-1?`<div class="prod-arrow${stopped&&i>=0?' stopped':' active'}">→</div>`:''}
+    `).join('')}
+  </div>
+  ${stopped?`<div style="text-align:center;padding:12px;font-size:14px;font-weight:800;color:#f87171;font-family:var(--mono);animation:chipBlink 1s infinite">⛔ PRODUCTION LINE STOPPED — CONVEYOR OFFLINE</div>`:''}`;
+}
+
+// ====================================================================
+//  MACHINE CARD
+// ====================================================================
+
+function renderMachineCard(m) {
+  const sc = STATUS_COLORS[m.status];
+  const hist = machineHistory[m.id]?.temp.slice(-20)||[];
+  const sparkColor = m.status==="critical"?"#ef4444":m.status==="warning"?"#f59e0b":"#22d3ee";
+  return `<div data-machine-id="${m.id}" class="m-card status-${m.status}${m.status==='critical'?' pulse-anim':''}" onclick="openMachine('${m.id}')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div style="min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          ${statusDot(m.status, m.status==='critical')}
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:${sc.text};font-family:var(--mono)">${m.status}</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.name}</div>
+        <div style="font-size:10px;color:#475569;font-family:var(--mono)">${m.id} · ${m.zone}</div>
+      </div>
+      ${gaugeHTML(m.health, 48)}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0">
+      <div style="background:rgba(15,30,48,0.7);border-radius:7px;padding:6px 9px">
+        <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.06em">Temp</div>
+        <div id="lv-temp-${m.id}" style="font-size:12px;font-weight:700;font-family:var(--mono);color:${m.temp>90?'#fb923c':'#f1f5f9'}">${m.temp.toFixed(1)}°C</div>
+      </div>
+      <div style="background:rgba(15,30,48,0.7);border-radius:7px;padding:6px 9px">
+        <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.06em">Vib</div>
+        <div id="lv-vib-${m.id}" style="font-size:12px;font-weight:700;font-family:var(--mono);color:${m.vibration>5?'#fb923c':'#f1f5f9'}">${m.vibration.toFixed(2)}</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end">
+      <div class="mini-chart">${sparkSVG(hist, sparkColor)}</div>
+      <div style="text-align:right">
+        <div style="font-size:9px;color:#475569">OEE</div>
+        <div style="font-size:12px;font-weight:700;font-family:var(--mono)">${Math.round(m.oee*100)}%</div>
+      </div>
+    </div>
+    ${m.status!=="normal"&&m.status!=="offline" ? `<div style="margin-top:8px;background:${sc.badge};border:1px solid ${sc.border};border-radius:6px;padding:4px 8px;font-size:10px;color:${sc.badgeText};font-family:var(--mono)">⚠ ${m.prediction}</div>` : ''}
+  </div>`;
+}
+
+function openMachine(id) { appState.selectedMachine = id; appState.page="machines"; render(); }
+
+// ====================================================================
+//  MACHINES PAGE
+// ====================================================================
+
+function renderMachinesPage() {
+  if(appState.selectedMachine) return renderMachineDetail(MACHINES.find(m=>m.id===appState.selectedMachine));
+  const f = appState.machineFilter;
+  const filtered = f==="all" ? MACHINES : MACHINES.filter(m=>m.status===f);
+  const isTech = appState.role==="Technician";
+  return `<div class="page-pad">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${["all","critical","warning","normal","offline"].map(s=>`<button class="fchip${f===s?' active':''}" onclick="setFilter('${s}')">${s==="all"?`All (${MACHINES.length})`:`${s} (${MACHINES.filter(m=>m.status===s).length})`}</button>`).join('')}
+      </div>
+      ${isTech ? `<button class="btn btn-success" onclick="bulkRepair()">🔧 Bulk Repair Selected</button>` : ''}
+    </div>
+    <div class="g-4" id="machines-grid">
+      ${filtered.map(m=>`<div style="position:relative">
+        ${renderMachineCard(m)}
+        ${isTech ? `<div style="position:absolute;top:10px;left:10px"><input type="checkbox" class="bulk-cb" data-mid="${m.id}" style="accent-color:#22d3ee;width:14px;height:14px"></div>` : ''}
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function setFilter(f) { appState.machineFilter=f; render(); }
+function bulkRepair() {
+  if(appState.role!=="Technician") return;
+  document.querySelectorAll(".bulk-cb:checked").forEach(cb=>repairMachine(cb.dataset.mid));
+  addActivityLog("Bulk Repair","Bulk repair completed");
+}
+
+function renderMachineDetail(m) {
+  if(!m) return '<div class="page-pad"><p>Machine not found.</p></div>';
+  const sc = STATUS_COLORS[m.status];
+  const isTech = appState.role==="Technician";
+  const tH = machineHistory[m.id]?.temp.slice(-60)||[];
+  const vH = machineHistory[m.id]?.vibration.slice(-60)||[];
+  const pH = machineHistory[m.id]?.pressure.slice(-60)||[];
+  return `<div class="page-pad">
+    <button class="btn btn-ghost btn-sm" onclick="appState.selectedMachine=null;render()" style="margin-bottom:14px">← Back to Fleet</button>
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;min-width:0">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card" style="border-color:${sc.border};background:${sc.bg}">
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                  ${statusDot(m.status,true)}
+                  <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:${sc.text};font-family:var(--mono)">${m.status}</span>
+                </div>
+                <div style="font-size:20px;font-weight:800;color:#f1f5f9">${m.name}</div>
+                <div style="font-size:12px;color:#64748b;font-family:var(--mono)">${m.id} · ${m.model} · ${m.zone}</div>
+              </div>
+              ${gaugeHTML(m.health, 68)}
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px">
+              ${[
+                {l:"Temperature",v:`${m.temp.toFixed(1)}°C`,warn:m.temp>90},
+                {l:"Vibration",v:`${m.vibration.toFixed(2)} mm/s`,warn:m.vibration>5.5},
+                {l:"Pressure",v:`${m.pressure.toFixed(0)} bar`,warn:m.pressure>1300},
+                {l:"Voltage",v:`${m.voltage}V`,warn:m.voltage<370||m.voltage>410},
+              ].map(s=>`<div style="background:rgba(9,20,33,0.7);border-radius:9px;padding:10px;text-align:center;border:1px solid var(--border)">
+                <div style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${s.l}</div>
+                <div style="font-size:14px;font-weight:700;font-family:var(--mono);color:${s.warn?'#fb923c':'#f1f5f9'}">${s.v}</div>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Sensor Trends (60 samples)</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+            <div>
+              <div style="font-size:10px;color:#475569;margin-bottom:4px;font-family:var(--mono)">TEMPERATURE °C</div>
+              <div style="height:60px">${areaSVG(tH, m.status==="critical"?"#ef4444":"#22d3ee", 60)}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#475569;margin-bottom:4px;font-family:var(--mono)">VIBRATION mm/s</div>
+              <div style="height:60px">${areaSVG(vH, "#f59e0b", 60)}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#475569;margin-bottom:4px;font-family:var(--mono)">PRESSURE bar</div>
+              <div style="height:60px">${areaSVG(pH, "#a78bfa", 60)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Performance</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+              ${[["OEE",Math.round(m.oee*100)+"%"],["Uptime",m.uptime+"%"],["MTBF",m.mtbf+"h"],["MTTR",m.mttr+"h"],["Energy",m.energyKw+" kW"]].map(([l,v])=>`
+                <div style="display:flex;justify-content:space-between;font-size:11px;border-bottom:1px solid var(--border);padding-bottom:5px">
+                  <span style="color:#475569">${l}</span><span style="font-family:var(--mono);color:#cbd5e1">${v}</span>
+                </div>`).join('')}
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Maintenance</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+              ${[["Last Maint",m.lastMaint],["Next Maint",m.nextMaint],["Model",m.model],["Zone",m.zone],["Dept",m.dept]].map(([l,v])=>`
+                <div style="display:flex;justify-content:space-between;font-size:11px;border-bottom:1px solid var(--border);padding-bottom:5px">
+                  <span style="color:#475569">${l}</span><span style="font-family:var(--mono);color:#cbd5e1;text-align:right;max-width:140px;overflow:hidden;text-overflow:ellipsis">${v}</span>
+                </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card" style="background:linear-gradient(160deg,rgba(239,68,68,0.08),rgba(15,30,48,0.8))">
+          <div class="card-header"><span class="card-title">AI Prediction</span></div>
+          <div class="card-body">
+            <div style="font-size:13px;font-weight:700;color:${m.status==='critical'?'#f87171':m.status==='warning'?'#fbbf24':'#4ade80'};margin-bottom:8px">${m.prediction}</div>
+            <div style="margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#475569;margin-bottom:4px"><span>Failure Probability</span><span style="font-family:var(--mono)">${m.failureProb}%</span></div>
+              ${barHTML(m.failureProb,100,"#ef4444")}
+            </div>
+            <div style="margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#475569;margin-bottom:4px"><span>Health</span><span style="font-family:var(--mono)">${m.health}%</span></div>
+              ${barHTML(m.health,100,"#22c55e")}
+            </div>
+            ${m.rul>0?`<div style="font-size:11px;color:#94a3b8;font-family:var(--mono)">RUL: <span style="color:#22d3ee">${m.rul}h remaining</span></div>`:''}
+            ${m.anomalies.length?`<div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">${m.anomalies.map(a=>`<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:5px 9px;font-size:10.5px;color:#fca5a5;font-family:var(--mono)">⚠ ${a}</div>`).join('')}</div>`:''}
+          </div>
+        </div>
+
+        ${isTech ? `<div class="card" style="border-color:rgba(34,211,238,0.3);background:rgba(34,211,238,0.04)">
+          <div class="card-header"><span class="card-title" style="color:#22d3ee">🔧 Technician Controls</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+            <button class="btn btn-success" onclick="repairMachine('${m.id}')" style="width:100%">🛠️ Full Repair Machine</button>
+            <div style="height:1px;background:var(--border)"></div>
+            ${[
+              {id:"temp-slider-"+m.id, param:"temp", label:"Temperature °C", min:15, max:145, val:m.temp, step:1},
+              {id:"vib-slider-"+m.id, param:"vibration", label:"Vibration mm/s", min:0.1, max:14, val:m.vibration, step:0.1},
+              {id:"press-slider-"+m.id, param:"pressure", label:"Pressure bar", min:40, max:1450, val:m.pressure, step:5},
+              {id:"volt-slider-"+m.id, param:"voltage", label:"Voltage V", min:340, max:420, val:m.voltage, step:1},
+            ].map(s=>`<div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#475569;margin-bottom:5px">
+                <span>${s.label}</span><span id="sv-${s.id}" style="font-family:var(--mono);color:#22d3ee">${parseFloat(s.val).toFixed(s.step<1?2:0)}</span>
+              </div>
+              <input type="range" class="repair-slider" id="${s.id}" data-machine="${m.id}" data-param="${s.param}" min="${s.min}" max="${s.max}" step="${s.step}" value="${s.val}" oninput="handleSlider(this)">
+            </div>`).join('')}
+          </div>
+        </div>` : `<div class="card">
+          <div class="card-body">
+            <button class="btn btn-danger" style="width:100%">🛑 Emergency Work Order</button>
+            <div style="font-size:10px;color:#475569;text-align:center;margin-top:8px;font-family:var(--mono)">Requires Technician role</div>
+          </div>
+        </div>`}
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent Alerts</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:6px">
+            ${ALERTS.filter(a=>a.machine===m.name).slice(0,4).map(a=>`
+              <div style="border-radius:6px;padding:7px 10px;background:${a.type==='critical'?'rgba(239,68,68,0.08)':'rgba(245,158,11,0.06)'};border:1px solid ${a.type==='critical'?'rgba(239,68,68,0.3)':'rgba(245,158,11,0.25)'}">
+                <div style="font-size:10px;font-weight:700;color:${a.type==='critical'?'#f87171':'#fbbf24'};margin-bottom:2px;font-family:var(--mono)">${a.type.toUpperCase()} · ${a.time}</div>
+                <div style="font-size:11px;color:#94a3b8">${a.msg}</div>
+              </div>`).join('')||'<div style="font-size:12px;color:#475569;text-align:center;padding:8px">No alerts for this machine</div>'}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function handleSlider(el) {
+  const val = parseFloat(el.value);
+  const dispEl = document.getElementById("sv-"+el.id);
+  if(dispEl) dispEl.textContent = val.toFixed(el.step<1?2:0);
+  adjustMachineParam(el.dataset.machine, el.dataset.param, val);
+  // Update pct for gradient
+  const pct = ((val-parseFloat(el.min))/(parseFloat(el.max)-parseFloat(el.min)))*100;
+  el.style.setProperty("--pct", pct+"%");
+}
+
+// ====================================================================
+//  FACTORY DIGITAL TWIN PAGE
+// ====================================================================
+
+function renderFactoryPage() {
+  const container = document.getElementById("page-content");
+  if(!container) return;
+  container.innerHTML = buildFactorySVG();
+  bindFactoryEvents();
+}
+
+function getMachineForZone(id) { return MACHINES.find(m=>m.id===id); }
+
+function buildFactorySVG() {
+  // Zones and machines positioned in SVG
+  const zones = [
+    { name:"Fabrication Zone", x:20, y:20, w:220, h:160, color:"rgba(34,211,238,0.06)", borderColor:"rgba(34,211,238,0.2)" },
+    { name:"Machining Zone", x:260, y:20, w:200, h:160, color:"rgba(99,102,241,0.06)", borderColor:"rgba(99,102,241,0.2)" },
+    { name:"Welding Zone", x:260, y:200, w:200, h:160, color:"rgba(245,158,11,0.05)", borderColor:"rgba(245,158,11,0.15)" },
+    { name:"Assembly Zone", x:480, y:110, w:200, h:160, color:"rgba(34,197,94,0.05)", borderColor:"rgba(34,197,94,0.15)" },
+    { name:"Packaging Zone", x:480, y:290, w:200, h:130, color:"rgba(168,85,247,0.05)", borderColor:"rgba(168,85,247,0.15)" },
+    { name:"Utilities Zone", x:20, y:200, w:220, h:160, color:"rgba(239,68,68,0.04)", borderColor:"rgba(239,68,68,0.15)" },
+  ];
+
+  const machineDefs = [
+    { id:"M001", x:50, y:60, w:80, h:55, zone:"Fabrication" },
+    { id:"M008", x:150, y:60, w:75, h:55, zone:"Fabrication" },
+    { id:"M006", x:50, y:130, w:75, h:40, zone:"Fabrication" },
+    { id:"M002", x:275, y:50, w:80, h:60, zone:"Machining" },
+    { id:"M004", x:275, y:225, w:80, h:60, zone:"Welding" },
+    { id:"M005", x:35, y:230, w:80, h:60, zone:"Utilities" },
+    { id:"M007", x:135, y:250, w:75, h:50, zone:"Utilities" },
+    { id:"M003", x:495, y:135, w:90, h:55, zone:"Assembly" },
+    // Conveyor Belt as long bar
+  ];
+
+  const machSVG = machineDefs.map(def=>{
+    const m = MACHINES.find(mc=>mc.id===def.id);
+    if(!m) return '';
+    const sc = STATUS_COLORS[m.status];
+    const glowClass = m.status==='critical'?'machine-glow-critical':m.status==='warning'?'machine-glow-warning':m.status==='normal'?'machine-glow-normal':'machine-glow-offline';
+    const healthBar = Math.max(0,(m.health/100)*60);
+    return `<g class="factory-machine ${glowClass}" data-machine-id="${m.id}" onclick="factoryMachineClick('${m.id}')">
+      <rect x="${def.x}" y="${def.y}" width="${def.w}" height="${def.h}" rx="6" fill="${sc.svgFill}" stroke="${sc.svgStroke}" stroke-width="1.5" opacity="0.9"/>
+      <rect x="${def.x+4}" y="${def.y+def.h-8}" width="${healthBar}" height="4" rx="2" fill="${sc.svgStroke}" opacity="0.8"/>
+      <text x="${def.x+def.w/2}" y="${def.y+14}" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="700" font-family="IBM Plex Mono">${m.shortName}</text>
+      <text x="${def.x+def.w/2}" y="${def.y+26}" text-anchor="middle" fill="${sc.svgStroke}" font-size="8" font-family="IBM Plex Mono">${m.status.toUpperCase()}</text>
+      <text x="${def.x+def.w/2}" y="${def.y+37}" text-anchor="middle" fill="#94a3b8" font-size="7.5" font-family="IBM Plex Mono">${m.temp.toFixed(0)}°C  ${m.health}%</text>
+    </g>`;
+  }).join('');
+
+  // Conveyor belt (special visualization)
+  const conv = MACHINES.find(m=>m.id==="M003");
+  const convColor = conv ? STATUS_COLORS[conv.status].svgStroke : "#475569";
+  const convFill = conv ? STATUS_COLORS[conv.status].svgFill : "#1e293b";
+  const convSVG = `<g class="factory-machine ${conv?.status==='critical'?'machine-glow-critical':conv?.status==='normal'?'machine-glow-normal':'machine-glow-offline'}" data-machine-id="M003" onclick="factoryMachineClick('M003')">
+    <rect x="490" y="135" width="95" height="55" rx="5" fill="${convFill}" stroke="${convColor}" stroke-width="1.5"/>
+    <line x1="497" y1="155" x2="578" y2="155" stroke="${convColor}" stroke-width="2.5" stroke-dasharray="${conv?.status==='offline'?'0':'5,3'}" opacity="0.7"/>
+    <circle cx="497" cy="155" r="6" fill="none" stroke="${convColor}" stroke-width="2"/>
+    <circle cx="578" cy="155" r="6" fill="none" stroke="${convColor}" stroke-width="2"/>
+    <text x="534" y="148" text-anchor="middle" fill="#e2e8f0" font-size="8" font-weight="700" font-family="IBM Plex Mono">Conv-C2</text>
+    <text x="534" y="175" text-anchor="middle" fill="${convColor}" font-size="7.5" font-family="IBM Plex Mono">${conv?.status.toUpperCase()}</text>
+  </g>`;
+
+  // Connection lines (production flow)
+  const lines = [
+    { x1:130, y1:88, x2:260, y2:80 },   // Fabrication→Machining
+    { x1:355, y1:80, x2:480, y2:160 },   // Machining→Assembly
+    { x1:355, y1:255, x2:480, y2:200 },  // Welding→Assembly
+    { x1:490, y1:280, x2:480, y2:330 },  // Assembly→Packaging
+    { x1:130, y1:270, x2:260, y2:255 },  // Utilities supports Welding
+  ];
+  const conveyorOff = conv?.status==="offline";
+  const linesSVG = lines.map(l=>`<line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${conveyorOff?"rgba(239,68,68,0.4)":"rgba(34,211,238,0.25)"}" stroke-width="1" stroke-dasharray="4,3"/>`).join('');
+
+  // Zone labels SVG
+  const zonesSVG = zones.map(z=>`
+    <rect x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="10" fill="${z.color}" stroke="${z.borderColor}" stroke-width="1"/>
+    <text x="${z.x+8}" y="${z.y+14}" fill="${z.borderColor}" font-size="8.5" font-weight="700" font-family="IBM Plex Mono">${z.name.toUpperCase()}</text>
+  `).join('');
+
+  // Machine legend tooltip box (selected machine)
+  const sel = appState.factorySelectedMachine ? MACHINES.find(m=>m.id===appState.factorySelectedMachine) : null;
+  const tooltipHTML = sel ? `
+    <div style="position:absolute;bottom:16px;left:16px;background:var(--bg-elevated);border:1px solid ${STATUS_COLORS[sel.status].border};border-radius:12px;padding:14px 18px;min-width:260px;backdrop-filter:blur(8px)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        ${statusDot(sel.status,true)}
+        <span style="font-weight:700;font-size:14px">${sel.name}</span>
+        <span style="font-size:10px;color:#475569;font-family:var(--mono);margin-left:auto">${sel.id}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;font-family:var(--mono)">
+        ${[["Temp",sel.temp.toFixed(1)+"°C"],["Pressure",sel.pressure.toFixed(0)+" bar"],["Vibration",sel.vibration.toFixed(2)+" mm/s"],["Voltage",sel.voltage+"V"],["Health",sel.health+"%"],["OEE",Math.round(sel.oee*100)+"%"]].map(([l,v])=>`
+          <div style="background:rgba(0,0,0,0.3);border-radius:6px;padding:5px 8px">
+            <div style="font-size:9px;color:#475569">${l}</div>
+            <div style="color:#e2e8f0;font-weight:600">${v}</div>
+          </div>`).join('')}
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:${STATUS_COLORS[sel.status].text};font-family:var(--mono)">${sel.prediction}</div>
+      <button class="btn btn-primary btn-sm" style="margin-top:10px;width:100%" onclick="openMachine('${sel.id}')">Open Full Detail →</button>
+    </div>
+  ` : `<div style="position:absolute;bottom:16px;left:16px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:11px;color:#475569;font-family:var(--mono)">Click a machine to inspect</div>`;
+
+  // Zone status summary
+  const zoneStats = ["Fabrication","Machining","Welding","Assembly","Packaging","Utilities"].map(zone=>{
+    const ms = MACHINES.filter(m=>m.zone===zone||m.dept===zone);
+    const worst = ms.some(m=>m.status==="critical")?"critical":ms.some(m=>m.status==="warning")?"warning":ms.every(m=>m.status==="offline")?"offline":"normal";
+    return `<div style="display:flex;align-items:center;gap:5px;font-size:10.5px;font-family:var(--mono)">
+      ${statusDot(worst)}
+      <span style="color:#94a3b8">${zone}</span>
+    </div>`;
+  }).join('');
+
+  return `<div style="height:100%;display:flex;flex-direction:column">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <span style="font-size:13px;font-weight:700;color:#f1f5f9">🏭 Factory Digital Twin</span>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${zoneStats}</div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="appState.factoryZoom=Math.min(1.8,appState.factoryZoom+0.1);renderFactoryPage()">+</button>
+        <button class="btn btn-ghost btn-sm" onclick="appState.factoryZoom=Math.max(0.6,appState.factoryZoom-0.1);renderFactoryPage()">−</button>
+        <button class="btn btn-ghost btn-sm" onclick="appState.factoryZoom=1;renderFactoryPage()">Reset</button>
+      </div>
+    </div>
+    <div style="flex:1;position:relative;overflow:hidden">
+      <div style="transform:scale(${appState.factoryZoom});transform-origin:top left;transition:transform 0.2s">
+        <svg viewBox="0 0 700 440" xmlns="http://www.w3.org/2000/svg" style="width:700px;height:440px;display:block">
+          <rect width="700" height="440" fill="#060c14"/>
+          <!-- Grid pattern -->
+          <pattern id="factgrid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(34,211,238,0.04)" stroke-width="0.5"/>
+          </pattern>
+          <rect width="700" height="440" fill="url(#factgrid)"/>
+          ${linesSVG}
+          ${zonesSVG}
+          ${machSVG}
+          ${convSVG}
+          ${conveyorOff ? `<text x="350" y="420" text-anchor="middle" fill="#ef4444" font-size="13" font-weight="800" font-family="IBM Plex Mono" opacity="0.9">⛔ PRODUCTION LINE STOPPED</text>` : ''}
+        </svg>
+      </div>
+      ${tooltipHTML}
+    </div>
+  </div>`;
+}
+
+function factoryMachineClick(id) {
+  appState.factorySelectedMachine = appState.factorySelectedMachine===id ? null : id;
+  renderFactoryPage();
+}
+
+function bindFactoryEvents() {
+  // No additional binding needed; events are inline
+}
+
+// ====================================================================
+//  SCADA CONTROL ROOM PAGE
+// ====================================================================
+
+function renderSCADAPage() {
+  const container = document.getElementById("page-content");
+  if(!container) return;
+  const critMachines = MACHINES.filter(m=>m.status==="critical");
+  const warnMachines = MACHINES.filter(m=>m.status==="warning");
+  const activeAlerts = ALERTS.filter(a=>!a.ack).slice(0,8);
+  const totalE = totalEnergy();
+  const avgH = Math.round(MACHINES.filter(m=>m.status!=="offline").reduce((a,m)=>a+m.health,0)/Math.max(1,MACHINES.filter(m=>m.status!=="offline").length));
+  const convOff = MACHINES.find(m=>m.id==="M003"&&m.status==="offline");
+
+  container.innerHTML = `<div style="height:100%;display:flex;flex-direction:column;overflow:hidden">
+    <!-- SCADA Top Bar -->
+    <div style="padding:10px 16px;background:rgba(0,0,0,0.4);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;font-family:var(--mono);font-size:11px;flex-shrink:0">
+      <div style="color:#22d3ee;font-weight:700;font-size:13px;letter-spacing:0.1em">SCADA CONTROL ROOM</div>
+      <div style="display:flex;gap:12px">
+        <span>${statusDot('normal')} <span style="color:#4ade80">${MACHINES.filter(m=>m.status==='normal').length} NOMINAL</span></span>
+        <span>${statusDot('warning')} <span style="color:#fbbf24">${MACHINES.filter(m=>m.status==='warning').length} WARNING</span></span>
+        <span>${statusDot('critical',true)} <span style="color:#f87171">${critMachines.length} CRITICAL</span></span>
+        <span>${statusDot('offline')} <span style="color:#64748b">${MACHINES.filter(m=>m.status==='offline').length} OFFLINE</span></span>
+      </div>
+      <div style="margin-left:auto;color:#22d3ee" id="scada-clock">${new Date().toLocaleString()}</div>
+    </div>
+
+    <div style="flex:1;overflow:auto;padding:14px;display:grid;grid-template-columns:1fr 1fr 320px;grid-template-rows:auto auto auto;gap:12px">
+      <!-- Alarm Wall -->
+      <div class="card" style="grid-row:span 2">
+        <div class="card-header">
+          <span class="card-title" style="color:#f87171">🚨 Live Alarm Wall</span>
+          <span style="font-size:10px;font-family:var(--mono);color:#475569">${activeAlerts.length} active</span>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:5px;max-height:320px;overflow-y:auto">
+          ${activeAlerts.length ? activeAlerts.map(a=>`
+            <div class="alarm-item alarm-${a.type==='critical'?'critical':a.type==='info'?'info':'warning'}">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-weight:700">[${a.type.toUpperCase()}] ${a.machine}</span>
+                <span style="opacity:0.7;font-size:10px">${a.time}</span>
+              </div>
+              <div style="opacity:0.85;font-size:10.5px">${a.msg}</div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:4px;font-size:10px" onclick="ackAlert(${a.id})">ACK</button>
+            </div>`).join('') : '<div style="color:#475569;text-align:center;padding:16px;font-size:11px">All clear — no active alarms</div>'}
+        </div>
+      </div>
+
+      <!-- System Health -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">System Health</span></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+            ${MACHINES.map(m=>`<div style="text-align:center">
+              ${gaugeHTML(m.health, 46)}
+              <div style="font-size:8.5px;color:#64748b;font-family:var(--mono);margin-top:2px">${m.shortName}</div>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- Event Timeline -->
+      <div class="card" style="grid-row:span 3">
+        <div class="card-header"><span class="card-title">Event Timeline</span></div>
+        <div class="card-body" style="max-height:500px;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
+          ${eventTimeline.slice(0,30).map(e=>`
+            <div class="alarm-item alarm-${e.type||'info'}" style="padding:6px 10px">
+              <span style="margin-right:4px">${e.icon||'○'}</span>
+              <span style="font-size:10.5px">${e.msg}</span>
+              <div style="font-size:9px;opacity:0.6;margin-top:2px">${fmtDate(e.timestamp)} · ${e.user||'System'}</div>
+            </div>`).join('') || '<div style="color:#475569;font-size:11px;text-align:center;padding:12px">No events yet</div>'}
+        </div>
+      </div>
+
+      <!-- Energy Gauges -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">⚡ Live Energy</span><span style="font-size:11px;font-family:var(--mono);color:#a78bfa">${totalE} kW total</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:7px">
+          ${MACHINES.filter(m=>m.status!=="offline").map(m=>`<div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:3px">
+              <span style="font-family:var(--mono)">${m.shortName}</span>
+              <span style="font-family:var(--mono);color:#a78bfa">${m.energyKw} kW</span>
+            </div>
+            ${barHTML(m.energyKw, 250, "#a78bfa")}
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Factory Status & Production -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Factory Status</span></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div style="text-align:center;padding:12px;background:rgba(34,211,238,0.08);border-radius:8px;border:1px solid rgba(34,211,238,0.2)">
+              <div style="font-size:22px;font-weight:800;font-family:var(--mono);color:#22d3ee">${avgH}%</div>
+              <div style="font-size:10px;color:#475569">Fleet Health</div>
+            </div>
+            <div style="text-align:center;padding:12px;background:${convOff?'rgba(239,68,68,0.1)':'rgba(34,197,94,0.08)'};border-radius:8px;border:1px solid ${convOff?'rgba(239,68,68,0.4)':'rgba(34,197,94,0.2)'}">
+              <div style="font-size:14px;font-weight:800;color:${convOff?'#f87171':'#4ade80'}">${convOff?'STOPPED':'RUNNING'}</div>
+              <div style="font-size:10px;color:#475569">Production</div>
+            </div>
+          </div>
+          ${renderProductionFlow(true)}
+        </div>
+      </div>
+
+      <!-- Fleet Health Chart -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Fleet Health Trend</span></div>
+        <div class="card-body"><div style="height:70px">${areaSVG(fleetHealthHistory,"#22d3ee",70)}</div></div>
+      </div>
+    </div>
+  </div>`;
+
+  // Live clock update
+  setInterval(()=>{
+    const cl = document.getElementById("scada-clock");
+    if(cl) cl.textContent = new Date().toLocaleString();
+  }, 1000);
+}
+
+function ackAlert(id) {
+  ALERTS = ALERTS.map(a=>a.id===id?{...a,ack:true}:a);
+  addActivityLog("Acknowledge", `Alert #${id} acknowledged`);
+  addEventTimeline("✅", `Alert #${id} acknowledged by ${appState.role}`, "success");
+  render();
+}
+
+// ====================================================================
+//  ALERTS PAGE
+// ====================================================================
+
+function renderAlertsPage() {
+  const f = appState.selectedAlertFilter||"all";
+  let filtered = ALERTS;
+  if(f==="critical") filtered = ALERTS.filter(a=>a.type==="critical");
+  if(f==="warning") filtered = ALERTS.filter(a=>a.type==="warning");
+  if(f==="unacked") filtered = ALERTS.filter(a=>!a.ack);
+  if(f==="resolved") filtered = ALERTS.filter(a=>a.resolved);
+  const critU = ALERTS.filter(a=>!a.ack&&a.type==="critical").length;
+  const warnU = ALERTS.filter(a=>!a.ack&&a.type==="warning").length;
+  return `<div class="page-pad" style="display:flex;flex-direction:column;gap:14px">
+    <div class="g-4">
+      <div class="stat-tile" style="border-color:rgba(239,68,68,0.3)"><div class="stat-val" style="color:#f87171">${critU}</div><div class="stat-label">Critical Unacked</div></div>
+      <div class="stat-tile" style="border-color:rgba(245,158,11,0.3)"><div class="stat-val" style="color:#fbbf24">${warnU}</div><div class="stat-label">Warnings</div></div>
+      <div class="stat-tile"><div class="stat-val">${ALERTS.filter(a=>a.ack).length}</div><div class="stat-label">Acknowledged</div></div>
+      <div class="stat-tile"><div class="stat-val">${ALERTS.length}</div><div class="stat-label">Total Events</div></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      ${["all","critical","warning","unacked","resolved"].map(x=>`<button class="fchip${f===x?' active':''}" onclick="appState.selectedAlertFilter='${x}';render()">${x}</button>`).join('')}
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="ackAllAlerts()">Ack All Critical</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV(ALERTS,'alerts.csv',['id','machine','type','msg','ack','time'])">Export CSV</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Alert Timeline — ${filtered.length} events</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" style="min-width:600px">
+          <thead><tr><th>Severity</th><th>Machine</th><th>Message</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            ${filtered.map(a=>`<tr>
+              <td><span style="font-size:10px;font-weight:700;font-family:var(--mono);color:${a.type==='critical'?'#f87171':a.type==='warning'?'#fbbf24':'#22d3ee'}">${a.type.toUpperCase()}</span></td>
+              <td style="color:#cbd5e1;font-weight:500">${a.machine}</td>
+              <td>${a.msg}</td>
+              <td style="font-family:var(--mono);color:#475569;white-space:nowrap">${a.time}</td>
+              <td>${a.ack?`<span style="color:#4ade80;font-size:10px;font-family:var(--mono)">✓ ACK'd</span>`:`<span class="dot ${a.type==='critical'?'critical':'warning'} pulse"></span>`}</td>
+              <td style="display:flex;gap:4px">
+                ${!a.ack?`<button class="btn btn-ghost btn-sm" onclick="ackAlert(${a.id})">ACK</button>`:''}
+                ${!a.resolved?`<button class="btn btn-success btn-sm" onclick="resolveAlert(${a.id})">Resolve</button>`:''}
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+function ackAllAlerts() {
+  ALERTS = ALERTS.map(a=>a.type==="critical"?{...a,ack:true}:a);
+  addActivityLog("Bulk Acknowledge", "All critical alerts acknowledged");
+  addEventTimeline("✅", "All critical alerts acknowledged", "success");
+  showToast("✅","All Alerts Acknowledged","Critical alerts cleared","success");
+  render();
+}
+function resolveAlert(id) {
+  ALERTS = ALERTS.map(a=>a.id===id?{...a,resolved:true,ack:true}:a);
+  addActivityLog("Resolve Alert","Alert "+id+" resolved");
+  render();
+}
+
+// ====================================================================
+//  ANALYTICS PAGE
+// ====================================================================
+
+function renderAnalyticsPage() {
+  const selId = appState.trendMachineId || "M001";
+  const selM = MACHINES.find(m=>m.id===selId)||MACHINES[0];
+  const histData = machineHistory[selId]?.[appState.trendParam]?.slice(-appState.trendSamples)||[];
+  const active = MACHINES.filter(m=>m.status!=="offline");
+  const avgOEE = (active.reduce((a,m)=>a+m.oee,0)/(active.length||1)*100).toFixed(1);
+  const avgMTBF = Math.round(active.reduce((a,m)=>a+m.mtbf,0)/(active.length||1));
+  const avgMTTR = Math.round(active.reduce((a,m)=>a+m.mttr,0)/(active.length||1));
+  const totalE2 = totalEnergy();
+  const avgH = Math.round(MACHINES.filter(m=>m.status!=="offline").reduce((a,m)=>a+m.health,0)/Math.max(1,active.length));
+
+  return `<div class="page-pad" style="display:flex;flex-direction:column;gap:14px">
+    <div class="g-5">
+      <div class="stat-tile"><div class="stat-val" style="color:#22d3ee">${avgH}%</div><div class="stat-label">Fleet Health</div></div>
+      <div class="stat-tile"><div class="stat-val" style="color:#4ade80">${avgOEE}%</div><div class="stat-label">OEE</div></div>
+      <div class="stat-tile"><div class="stat-val" style="color:#f87171">${MACHINES.filter(m=>m.status==="critical").length}</div><div class="stat-label">Critical</div></div>
+      <div class="stat-tile"><div class="stat-val" style="color:#a78bfa">${totalE2}</div><div class="stat-label">Energy kW</div></div>
+      <div class="stat-tile"><div class="stat-val">${avgMTBF}h</div><div class="stat-label">Avg MTBF</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Fleet Health Trend</span></div>
+        <div class="card-body"><div style="height:90px">${areaSVG(fleetHealthHistory,"#22d3ee",90)}</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Energy Consumption Trend</span></div>
+        <div class="card-body"><div style="height:90px">${areaSVG(fleetEnergyHistory,"#a78bfa",90)}</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Advanced Trend Analysis</span>
+        <div style="display:flex;gap:8px">
+          <select id="an-machine" class="login-select" style="padding:4px 8px;font-size:11px;width:auto" onchange="appState.trendMachineId=this.value;render()">
+            ${MACHINES.map(m=>`<option value="${m.id}" ${m.id===selId?"selected":""}>${m.name}</option>`).join('')}
+          </select>
+          <select id="an-param" class="login-select" style="padding:4px 8px;font-size:11px;width:auto" onchange="appState.trendParam=this.value;render()">
+            <option value="temp" ${appState.trendParam==="temp"?"selected":""}>Temperature</option>
+            <option value="vibration" ${appState.trendParam==="vibration"?"selected":""}>Vibration</option>
+            <option value="pressure" ${appState.trendParam==="pressure"?"selected":""}>Pressure</option>
+            <option value="energy" ${appState.trendParam==="energy"?"selected":""}>Energy</option>
+          </select>
+          <select id="an-range" class="login-select" style="padding:4px 8px;font-size:11px;width:auto" onchange="appState.trendSamples=parseInt(this.value);render()">
+            <option value="30" ${appState.trendSamples===30?"selected":""}>30 samples</option>
+            <option value="60" ${appState.trendSamples===60?"selected":""}>60 samples</option>
+            <option value="120" ${appState.trendSamples===120?"selected":""}>120 samples</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body">
+        <div style="height:110px">${areaSVG(histData, selM.status==="critical"?"#ef4444":selM.status==="warning"?"#f59e0b":"#22d3ee", 110)}</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Machine Performance Matrix</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Machine</th><th>Health</th><th>OEE</th><th>MTBF</th><th>MTTR</th><th>Energy kW</th><th>Status</th></tr></thead>
+            <tbody>
+              ${MACHINES.map(m=>`<tr>
+                <td style="color:#f1f5f9;font-weight:500">${m.name}</td>
+                <td><div style="display:flex;align-items:center;gap:6px"><div class="energy-bar-bg" style="width:60px;display:inline-block"><div class="energy-bar-fill" style="width:${m.health}%;background:${m.health>75?'#22c55e':m.health>45?'#f59e0b':'#ef4444'}"></div></div><span style="font-family:var(--mono)">${m.health}%</span></div></td>
+                <td style="font-family:var(--mono)">${Math.round(m.oee*100)}%</td>
+                <td style="font-family:var(--mono)">${m.mtbf}h</td>
+                <td style="font-family:var(--mono)">${m.mttr}h</td>
+                <td style="font-family:var(--mono)">${m.energyKw}</td>
+                <td><span class="dot ${m.status}"></span> <span style="font-size:10px;font-family:var(--mono);color:${STATUS_COLORS[m.status].text}">${m.status}</span></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Key Metrics</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+          ${[
+            ["Avg OEE", avgOEE+"%", "#4ade80"],
+            ["Avg MTBF", avgMTBF+"h", "#22d3ee"],
+            ["Avg MTTR", avgMTTR+"h", "#fbbf24"],
+            ["Total Energy", totalE2+" kW", "#a78bfa"],
+            ["Critical Machines", MACHINES.filter(m=>m.status==="critical").length, "#f87171"],
+            ["Offline Machines", MACHINES.filter(m=>m.status==="offline").length, "#64748b"],
+            ["Avg Health", avgH+"%", "#22d3ee"],
+          ].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--border)">
+            <span style="font-size:11px;color:#475569">${l}</span>
+            <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${c}">${v}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ====================================================================
+//  PREDICTIONS PAGE
+// ====================================================================
+
+function renderPredictionsPage() {
+  const sorted = [...MACHINES].filter(m=>m.status!=="offline").sort((a,b)=>b.failureProb-a.failureProb);
+  const getPredictionLabel = (m) => {
+    if(m.failureProb > 70) return { label:"IMMINENT FAILURE", color:"#f87171", bg:"rgba(239,68,68,0.12)" };
+    if(m.failureProb > 45) return { label:"HIGH RISK", color:"#fbbf24", bg:"rgba(245,158,11,0.10)" };
+    if(m.failureProb > 20) return { label:"MODERATE RISK", color:"#fb923c", bg:"rgba(251,146,60,0.08)" };
+    return { label:"LOW RISK", color:"#4ade80", bg:"rgba(34,197,94,0.08)" };
+  };
+  return `<div class="page-pad" style="display:flex;flex-direction:column;gap:14px">
+    <div style="background:linear-gradient(135deg,rgba(6,182,212,0.08),rgba(99,102,241,0.06));border:1px solid rgba(34,211,238,0.2);border-radius:12px;padding:16px 20px">
+      <div style="font-size:15px;font-weight:800;color:#22d3ee;margin-bottom:4px">🧠 AI Predictive Maintenance Engine</div>
+      <div style="font-size:12px;color:#94a3b8">Real-time failure probability analysis using sensor fusion, trend detection, and anomaly scoring. Updated every 4 seconds.</div>
+    </div>
+    <div class="g-2">
+      ${sorted.map(m=>{
+        const pl = getPredictionLabel(m);
+        return `<div class="card" style="border-left:3px solid ${STATUS_COLORS[m.status].border}">
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+              <div>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                  ${statusDot(m.status,true)}
+                  <span style="font-size:11px;font-weight:700;color:${STATUS_COLORS[m.status].text};font-family:var(--mono)">${m.status.toUpperCase()}</span>
+                </div>
+                <div style="font-size:14px;font-weight:700;color:#f1f5f9">${m.name}</div>
+                <div style="font-size:10px;color:#475569;font-family:var(--mono)">${m.id} · ${m.model}</div>
+              </div>
+              <div style="text-align:right">
+                ${gaugeHTML(100-m.failureProb, 54)}
+                <div style="font-size:9px;color:#475569;margin-top:2px;font-family:var(--mono)">Health</div>
+              </div>
+            </div>
+            <div style="background:${pl.bg};border:1px solid ${pl.color}33;border-radius:7px;padding:6px 10px;margin-bottom:10px">
+              <span style="font-size:10px;font-weight:700;color:${pl.color};font-family:var(--mono)">${pl.label}</span>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px">${m.prediction}</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+              <div>
+                <div style="color:#475569;font-size:9px;margin-bottom:3px">FAILURE PROBABILITY</div>
+                ${barHTML(m.failureProb,100,"#ef4444")}
+                <div style="font-family:var(--mono);font-size:10px;color:#f87171;margin-top:2px">${m.failureProb}%</div>
+              </div>
+              <div>
+                <div style="color:#475569;font-size:9px;margin-bottom:3px">REMAINING USEFUL LIFE</div>
+                <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:#22d3ee">${m.rul>0?m.rul+'h':'N/A'}</div>
+              </div>
+            </div>
+            ${m.anomalies.length ? `<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">${m.anomalies.map(a=>`<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:5px;padding:4px 8px;font-size:10px;color:#fca5a5;font-family:var(--mono)">⚠ ${a}</div>`).join('')}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+// ====================================================================
+//  MAINTENANCE PAGE
+// ====================================================================
+
+function renderMaintenancePage() {
+  const getStatusBadge = (s) => {
+    const m = { overdue:"maint-overdue", pending:"maint-pending", "in-progress":"maint-progress", completed:"maint-done" };
+    return `<span class="maint-badge ${m[s]||'maint-pending'}">${s}</span>`;
+  };
+  return `<div class="page-pad" style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:14px;font-weight:700;color:#f1f5f9">Maintenance Management</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="addMaintTask()">+ New Task</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV(maintenanceTasks,'maintenance.csv',['id','machineName','task','dueDate','status','assignedTo','priority'])">Export</button>
+      </div>
+    </div>
+
+    <div class="g-4">
+      ${[["Pending",maintenanceTasks.filter(t=>t.status==="pending").length,"#fbbf24"],["Overdue",maintenanceTasks.filter(t=>t.status==="overdue").length,"#f87171"],["In Progress",maintenanceTasks.filter(t=>t.status==="in-progress").length,"#22d3ee"],["Completed",maintenanceTasks.filter(t=>t.status==="completed").length,"#4ade80"]].map(([l,v,c])=>`
+      <div class="stat-tile"><div class="stat-val" style="color:${c}">${v}</div><div class="stat-label">${l}</div></div>`).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Active Work Orders</span></div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Machine</th><th>Task</th><th>Due Date</th><th>Assigned To</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${maintenanceTasks.map(t=>`<tr>
+              <td style="color:#f1f5f9;font-weight:500">${t.machineName}</td>
+              <td>${t.task}</td>
+              <td style="font-family:var(--mono);color:${t.status==='overdue'?'#f87171':'#94a3b8'}">${t.dueDate}</td>
+              <td>${t.assignedTo}</td>
+              <td><span class="maint-badge ${t.priority==='critical'?'maint-overdue':t.priority==='high'?'maint-pending':t.priority==='medium'?'maint-progress':'maint-done'}">${t.priority||'medium'}</span></td>
+              <td>${getStatusBadge(t.status)}</td>
+              <td style="display:flex;gap:4px">
+                ${t.status!=="in-progress"&&t.status!=="completed"?`<button class="btn btn-primary btn-sm" onclick="startMaintTask('${t.id}')">Start</button>`:''}
+                ${t.status==="in-progress"?`<button class="btn btn-success btn-sm" onclick="completeMaintTask('${t.id}')">Complete</button>`:''}
+                ${t.status!=="completed"?`<button class="btn btn-danger btn-sm" onclick="removeMaintTask('${t.id}')">✕</button>`:''}
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="g-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Anomaly Detection Log</span><button class="btn btn-ghost btn-sm" onclick="exportCSV(anomalyLogs,'anomalies.csv',['machine','description','timestamp'])">Export</button></div>
+        <div class="card-body scroll-region" style="max-height:220px;display:flex;flex-direction:column;gap:5px">
+          ${anomalyLogs.slice(0,15).map(a=>`<div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:7px;padding:7px 10px">
+            <div style="display:flex;justify-content:space-between"><span style="font-weight:600;font-size:11px">${a.machine}</span><span style="font-size:9px;color:#475569;font-family:var(--mono)">${fmtTime(a.timestamp)}</span></div>
+            <div style="font-size:10.5px;color:#94a3b8;font-family:var(--mono)">${a.description}</div>
+          </div>`).join('')||`<div style="color:#475569;text-align:center;padding:16px;font-size:12px">No anomalies recorded</div>`}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Predictive Schedule</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:7px">
+          ${MACHINES.filter(m=>m.status!=="offline"&&m.rul>0).sort((a,b)=>a.rul-b.rul).map(m=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:8px;background:rgba(0,0,0,0.2);border:1px solid var(--border)">
+              <div>
+                <div style="font-size:11px;font-weight:600;color:#cbd5e1">${m.name}</div>
+                <div style="font-size:10px;color:#475569;font-family:var(--mono)">${m.prediction}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:12px;font-weight:700;font-family:var(--mono);color:${m.rul<24?'#f87171':m.rul<72?'#fbbf24':'#4ade80'}">${m.rul}h</div>
+                <div style="font-size:9px;color:#475569">RUL</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function addMaintTask() {
+  const newTask = {
+    id:"m"+Date.now(), machineId:"M003", machineName:"Conveyor Belt", task:"Routine lubrication & inspection",
+    dueDate:new Date(Date.now()+7*86400000).toISOString().slice(0,10), status:"pending", assignedTo:"Technician A", priority:"low"
+  };
+  maintenanceTasks.push(newTask);
+  addActivityLog("Maintenance","New task created: "+newTask.task);
+  addEventTimeline("📋","New maintenance task added","info");
+  showToast("📋","Task Created","New maintenance task added","info");
+  render();
+}
+function startMaintTask(id) {
+  maintenanceTasks = maintenanceTasks.map(t=>t.id===id?{...t,status:"in-progress"}:t);
+  addActivityLog("Maintenance","Task started: "+id);
+  addEventTimeline("🔧","Maintenance task started","info");
+  render();
+}
+function completeMaintTask(id) {
+  const t = maintenanceTasks.find(x=>x.id===id);
+  if(!t) return;
+  maintenanceTasks = maintenanceTasks.map(x=>x.id===id?{...x,status:"completed"}:x);
+  const m = MACHINES.find(x=>x.id===t.machineId);
+  if(m) {
+    m.health = Math.min(99, m.health+12);
+    m.prediction = "✅ Post-maintenance — monitoring in progress";
+    recalcHealth(m);
+  }
+  addActivityLog("Maintenance Completed","Task "+id+" completed — health improved");
+  addEventTimeline("🛠️","Maintenance completed: "+t.machineName,"success");
+  showToast("✅","Maintenance Complete",`${t.machineName} task completed`,"success");
+  render();
+}
+function removeMaintTask(id) {
+  maintenanceTasks = maintenanceTasks.filter(t=>t.id!==id);
+  render();
+}
+
+// ====================================================================
+//  ENERGY MANAGEMENT PAGE
+// ====================================================================
+
+function renderEnergyPage() {
+  const totalE2 = totalEnergy();
+  const daily = (totalE2 * 24).toFixed(0);
+  const monthly = (totalE2 * 24 * 30).toFixed(0);
+  const zoneEnergy = {};
+  MACHINES.forEach(m=>{ const z=m.zone||m.dept; zoneEnergy[z]=(zoneEnergy[z]||0)+m.energyKw; });
+  return `<div class="page-pad" style="display:flex;flex-direction:column;gap:14px">
+    <div class="g-4">
+      <div class="stat-tile" style="border-color:rgba(167,139,250,0.3)"><div class="stat-val" style="color:#a78bfa">${totalE2}</div><div class="stat-label">Current kW</div><div class="stat-sub">Live total</div></div>
+      <div class="stat-tile"><div class="stat-val">${daily}</div><div class="stat-label">Daily kWh (est)</div></div>
+      <div class="stat-tile"><div class="stat-val">${monthly}</div><div class="stat-label">Monthly kWh (est)</div></div>
+      <div class="stat-tile" style="border-color:rgba(34,197,94,0.25)"><div class="stat-val" style="color:#4ade80">${(totalE2*0.12).toFixed(0)}</div><div class="stat-label">Hourly Cost $</div></div>
+    </div>
+
+    <div class="g-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Machine Energy Consumption</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+          ${[...MACHINES].sort((a,b)=>b.energyKw-a.energyKw).map(m=>`<div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+              <span style="color:#cbd5e1">${m.name}</span>
+              <span style="font-family:var(--mono);color:#a78bfa">${m.energyKw} kW</span>
+            </div>
+            ${barHTML(m.energyKw, Math.max(...MACHINES.map(x=>x.energyKw))+30, "#a78bfa")}
+          </div>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Zone Energy</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+            ${Object.entries(zoneEnergy).map(([z,e])=>`<div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+                <span style="color:#cbd5e1">${z}</span>
+                <span style="font-family:var(--mono);color:#38bdf8">${e.toFixed(0)} kW</span>
+              </div>
+              ${barHTML(e, totalE2, "#38bdf8")}
+            </div>`).join('')}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Energy Trend</span></div>
+          <div class="card-body"><div style="height:90px">${areaSVG(fleetEnergyHistory,"#a78bfa",90)}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ====================================================================
+//  SENSOR SIMULATOR PAGE
+// ====================================================================
+
+function renderSimulatorPage() {
+  const selId = appState.simMachineId||"M001";
+  const m = MACHINES.find(x=>x.id===selId)||MACHINES[0];
+  return `<div class="page-pad" style="display:flex;flex-direction:column;gap:14px">
+    <div style="background:linear-gradient(135deg,rgba(34,211,238,0.08),rgba(99,102,241,0.06));border:1px solid rgba(34,211,238,0.25);border-radius:12px;padding:16px 20px">
+      <div style="font-size:15px;font-weight:700;color:#22d3ee;margin-bottom:4px">🎛️ Sensor Simulator</div>
+      <div style="font-size:12px;color:#94a3b8">Adjust machine parameters in real-time. Changes synchronize instantly across Factory, Dashboard, Alerts, Analytics.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${MACHINES.map(mach=>`<button class="fchip${selId===mach.id?' active':''}" onclick="appState.simMachineId='${mach.id}';render()">${mach.shortName}</button>`).join('')}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="card">
+        <div class="card-header"><span class="card-title" style="font-size:14px">${m.name}</span><span class="maint-badge ${m.status==='critical'?'maint-overdue':m.status==='warning'?'maint-pending':'maint-done'}">${m.status.toUpperCase()}</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:16px">
+          ${[
+            {label:"Temperature °C", param:"temp", min:15, max:145, val:m.temp, step:0.5, warn:m.temp>90, unit:"°C", color:"#f59e0b"},
+            {label:"Vibration mm/s", param:"vibration", min:0.1, max:14, val:m.vibration, step:0.05, warn:m.vibration>5.5, unit:"mm/s", color:"#ef4444"},
+            {label:"Pressure bar", param:"pressure", min:40, max:1450, val:m.pressure, step:5, warn:m.pressure>1300, unit:"bar", color:"#a78bfa"},
+            {label:"Voltage V", param:"voltage", min:340, max:420, val:m.voltage, step:1, warn:m.voltage<370||m.voltage>410, unit:"V", color:"#22d3ee"},
+          ].map(s=>{
+            const pct = ((parseFloat(s.val)-s.min)/(s.max-s.min))*100;
+            return `<div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:11px;font-weight:600;color:#94a3b8">${s.label}</span>
+                <span id="sim-val-${m.id}-${s.param}" style="font-family:var(--mono);font-size:13px;font-weight:700;color:${s.warn?'#f87171':s.color}">${parseFloat(s.val).toFixed(s.step<1?2:0)} ${s.unit}</span>
+              </div>
+              <input type="range" class="sim-slider" style="--pct:${pct}%" id="sim-${m.id}-${s.param}"
+                data-machine="${m.id}" data-param="${s.param}"
+                min="${s.min}" max="${s.max}" step="${s.step}" value="${s.val}"
+                oninput="handleSimSlider(this,'${s.unit}',${s.step<1?2:0})">
+              <div style="display:flex;justify-content:space-between;font-size:9px;color:#334155;font-family:var(--mono);margin-top:2px">
+                <span>${s.min}${s.unit}</span><span>${s.max}${s.unit}</span>
+              </div>
+            </div>`;
+          }).join('')}
+          <button class="btn btn-success" onclick="repairMachine('${m.id}')" style="margin-top:4px">🛠️ Restore to Normal</button>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Live Readings</span></div>
+          <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            ${[["Health",m.health+"%","#22d3ee"],["Temp",m.temp.toFixed(1)+"°C",m.temp>90?"#f87171":"#f1f5f9"],["Vibration",m.vibration.toFixed(2)+" mm/s",m.vibration>5.5?"#f87171":"#f1f5f9"],["Pressure",m.pressure.toFixed(0)+" bar","#f1f5f9"],["Voltage",m.voltage+"V","#f1f5f9"],["Energy",m.energyKw+" kW","#a78bfa"]].map(([l,v,c])=>`
+              <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border)">
+                <div style="font-size:9px;color:#475569;text-transform:uppercase;margin-bottom:4px">${l}</div>
+                <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:${c}">${v}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Temperature Trend</span></div>
+          <div class="card-body"><div style="height:70px">${areaSVG(machineHistory[m.id]?.temp.slice(-30)||[], m.status==="critical"?"#ef4444":"#22d3ee", 70)}</div></div>
+        </div>
+        <div class="card" style="border-color:rgba(34,211,238,0.3)">
+          <div class="card-body">
+            <div style="font-size:10px;font-weight:700;color:#22d3ee;margin-bottom:6px;font-family:var(--mono)">AI PREDICTION</div>
+            <div style="font-size:12px;color:#94a3b8">${m.prediction}</div>
+            <div style="margin-top:8px">
+              <div style="font-size:9px;color:#475569;margin-bottom:3px">Failure Probability</div>
+              ${barHTML(m.failureProb,100,"#ef4444")}
+              <span style="font-family:var(--mono);font-size:11px;color:#f87171">${m.failureProb}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.2)">
+      <div class="card-header"><span class="card-title" style="color:#fbbf24">⚡ Threshold Reference</span></div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;font-size:11px;font-family:var(--mono)">
+          ${[["Temp","Warning >85°C","Critical >105°C","#f59e0b"],["Vibration","Warning >3.5 mm/s","Critical >6 mm/s","#ef4444"],["Pressure","Warning >1200 bar","Critical >1380 bar","#a78bfa"],["Voltage","Warning <370V or >410V","Critical <355V or >420V","#22d3ee"]].map(([l,w,c,col])=>`
+          <div style="padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-weight:700;color:${col};margin-bottom:6px">${l}</div>
+            <div style="color:#fbbf24;margin-bottom:3px">${w}</div>
+            <div style="color:#f87171">${c}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function handleSimSlider(el, unit, decimals) {
+  const val = parseFloat(el.value);
+  const dispEl = document.getElementById(`sim-val-${el.dataset.machine}-${el.dataset.param}`);
+  if(dispEl) dispEl.textContent = `${val.toFixed(decimals)} ${unit}`;
+  const pct = ((val - parseFloat(el.min))/(parseFloat(el.max)-parseFloat(el.min)))*100;
+  el.style.setProperty("--pct", pct+"%");
+  adjustMachineParam(el.dataset.machine, el.dataset.param, val);
+  // Update live reading panel instantly
+  const m = MACHINES.find(x=>x.id===el.dataset.machine);
+  if(m) {
+    ["Health","Temp","Vibration","Pressure","Voltage","Energy"].forEach((l,i)=>{
+      const node = document.querySelector(`#sim-val-${m.id}-${el.dataset.param}`);
+    });
+    // Partial update of readings grid
+    const trendEl = document.querySelector(".sim-trend-area");
+    if(trendEl) trendEl.innerHTML = areaSVG(machineHistory[m.id]?.temp.slice(-30)||[], m.status==="critical"?"#ef4444":"#22d3ee", 70);
+  }
+}
+
+// ====================================================================
+//  ACTIVITY LOGS PAGE
+// ====================================================================
+
+function renderLogsPage() {
+  return `<div class="page-pad" style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:14px;font-weight:700;color:#f1f5f9">Activity & Audit Logs</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV(activityLog,'activity_log.csv',['action','details','user','timestamp'])">Export Activity</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV(anomalyLogs,'anomaly_log.csv',['machine','description','timestamp'])">Export Anomalies</button>
+      </div>
+    </div>
+    <div class="g-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">User Activity Log (${activityLog.length})</span></div>
+        <div class="card-body scroll-region" style="max-height:500px">
+          <table class="data-table">
+            <thead><tr><th>Time</th><th>Action</th><th>Details</th><th>User</th></tr></thead>
+            <tbody>
+              ${activityLog.slice(0,50).map(l=>`<tr>
+                <td style="font-family:var(--mono);white-space:nowrap;color:#475569">${fmtDate(l.timestamp)}</td>
+                <td style="color:#22d3ee;font-weight:600">${l.action}</td>
+                <td>${l.details}</td>
+                <td style="font-family:var(--mono)">${l.user}</td>
+              </tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:#475569">No activity yet</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Anomaly Detection Log (${anomalyLogs.length})</span></div>
+        <div class="card-body scroll-region" style="max-height:500px">
+          <table class="data-table">
+            <thead><tr><th>Time</th><th>Machine</th><th>Anomaly</th></tr></thead>
+            <tbody>
+              ${anomalyLogs.slice(0,50).map(a=>`<tr>
+                <td style="font-family:var(--mono);white-space:nowrap;color:#475569">${fmtDate(a.timestamp)}</td>
+                <td style="color:#fbbf24;font-weight:600">${a.machine}</td>
+                <td style="font-family:var(--mono);font-size:10.5px">${a.description}</td>
+              </tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:#475569">No anomalies logged yet</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ====================================================================
+//  CHAT PANEL
+// ====================================================================
+
+function toggleChat() { appState.chatOpen = !appState.chatOpen; render(); }
+
+function renderChatPanel() {
+  return `<div id="chat-panel">
+    <div class="chat-header">
+      <div style="width:30px;height:30px;border-radius:8px;background:rgba(34,211,238,0.15);border:1px solid rgba(34,211,238,0.3);display:flex;align-items:center;justify-content:center;font-size:16px">🤖</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#f1f5f9">Factory AI Assistant</div>
+        <div style="font-size:9px;color:#22d3ee;font-family:var(--mono)">● Live data connected</div>
+      </div>
+      <button onclick="toggleChat()" style="margin-left:auto;background:none;border:none;color:#475569;cursor:pointer;font-size:20px;line-height:1">×</button>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      ${chatMessages.map(m=>`<div class="chat-msg ${m.role}">${m.text}</div>`).join('')}
+    </div>
+    <div style="padding:6px 10px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border)">
+      ${["Fleet status","Critical alerts","Energy usage","Top predictions"].map(q=>`<button onclick="quickChat('${q}')" style="font-size:9.5px;padding:3px 8px;border:1px solid var(--border);border-radius:5px;background:none;color:#475569;cursor:pointer">${q}</button>`).join('')}
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" placeholder="Ask about machines, alerts…" onkeypress="if(event.key==='Enter')sendChat()">
+      <button class="btn btn-primary" onclick="sendChat()" style="padding:6px 12px">→</button>
+    </div>
+  </div>`;
+}
+
+
+
+function getLiveSystemContext() {
+  const activeMachines = MACHINES.filter(m => m.status !== "offline");
+  const avgHealth = activeMachines.length 
+    ? Math.round(activeMachines.reduce((a, m) => a + m.health, 0) / activeMachines.length) 
+    : 0;
+  const criticalCount = MACHINES.filter(m => m.status === "critical").length;
+  const warningCount = MACHINES.filter(m => m.status === "warning").length;
+  const totalEnergyKw = totalEnergy();
+  
+  // Last 8 timeline events – key to knowing recent changes
+  const recentEvents = eventTimeline.slice(0, 8).map(e => 
+    `${e.icon || '•'} ${e.msg} (${new Date(e.timestamp).toLocaleTimeString()})`
+  ).join('\n');
+  
+  // Last 5 user actions from activity log
+  const recentActions = activityLog.slice(0, 5).map(a => 
+    `→ ${a.action}: ${a.details} (${new Date(a.timestamp).toLocaleTimeString()})`
+  ).join('\n');
+  
+  // All machines current state (compact but complete)
+  const machinesState = MACHINES.map(m => 
+    `${m.name}: ${m.status.toUpperCase()}, health ${m.health}%, temp ${m.temp.toFixed(0)}°C, vib ${m.vibration.toFixed(1)}, energy ${m.energyKw}kW`
+  ).join('; ');
+  
+  // Active alerts
+  const activeAlerts = ALERTS.filter(a => !a.ack && (a.type === "critical" || a.type === "warning")).slice(0, 4);
+  const alertsText = activeAlerts.length 
+    ? activeAlerts.map(a => `⚠️ ${a.machine}: ${a.msg} (${a.time})`).join('\n')
+    : "None";
+  
+  return `=== CURRENT SYSTEM STATE ===
+Overall: Avg health ${avgHealth}% | Critical: ${criticalCount} | Warning: ${warningCount} | Energy: ${totalEnergyKw} kW
+Active Alerts:
+${alertsText}
+
+Latest Events & Changes (newest first):
+${recentEvents || "No recent events"}
+
+Latest User Actions:
+${recentActions || "No recent actions"}
+
+All Machines Details:
+${machinesState}
+
+IMPORTANT INSTRUCTION: Based on the data above, answer the user accurately. If they ask "what changed?" tell them the exact last 3 events. If they ask about a specific machine, use its live data. Be concise and helpful. Always reply in English.`;
+}
+
+
+
+
+
+
+function sendChat() {
+  const inp = document.getElementById("chat-input");
+  if (!inp || !inp.value.trim()) return;
+  const userMsg = inp.value.trim();
+  chatMessages.push({ role: "user", text: userMsg });
+  inp.value = "";
+  
+  const context = getLiveSystemContext(); // full live context
+  const lower = userMsg.toLowerCase();
+  let reply = "";
+  
+  // 1. Question about recent changes
+  if (lower.includes("what changed") || lower.includes("recent update") || lower.includes("latest change") || 
+      lower.includes("any modification") || lower.includes("what's new")) {
+    const latestChanges = eventTimeline.slice(0, 4).map(e => `${e.icon || '📌'} ${e.msg}`).join('\n');
+    reply = `🔄 **Latest system changes:**\n${latestChanges || "No recent changes."}`;
+  }
+  
+  // 2. Question about repairs or fixes
+  else if (lower.includes("repair") || lower.includes("fixed") || lower.includes("restored")) {
+    const lastRepair = activityLog.find(a => a.action === "Repair");
+    if (lastRepair) {
+      reply = `🛠️ Last repair: ${lastRepair.details} (by ${lastRepair.user} at ${new Date(lastRepair.timestamp).toLocaleTimeString()}).`;
+    } else {
+      reply = "No recent repairs recorded.";
+    }
+  }
+  
+  // 3. Question about alerts or critical issues
+  else if (lower.includes("alert") || lower.includes("critical") || lower.includes("alarm")) {
+    const criticalNow = MACHINES.filter(m => m.status === "critical").map(m => `${m.name} (health ${m.health}%, temp ${m.temp.toFixed(0)}°C)`);
+    const unackedAlerts = ALERTS.filter(a => !a.ack && a.type === "critical");
+    if (criticalNow.length) {
+      reply = `🚨 **Currently critical machines:** ${criticalNow.join(', ')}.\nUnacknowledged alerts: ${unackedAlerts.map(a => a.msg).join('; ') || "none."}`;
+    } else {
+      reply = "No machines are in critical state right now. System is stable.";
+    }
+  }
+  
+  // 4. Question about energy
+  else if (lower.includes("energy") || lower.includes("power")) {
+    const top = [...MACHINES].sort((a, b) => b.energyKw - a.energyKw)[0];
+    reply = `⚡ Total energy consumption: ${totalEnergy()} kW. Highest consumer: ${top.name} (${top.energyKw} kW). Estimated hourly cost: $${(totalEnergy() * 0.12).toFixed(2)}.`;
+  }
+  
+  // 5. Question about production line
+  else if (lower.includes("production") || lower.includes("line") || lower.includes("conveyor")) {
+    const conv = MACHINES.find(m => m.id === "M003");
+    reply = conv?.status === "offline" 
+      ? "⛔ **PRODUCTION LINE STOPPED** – Conveyor Belt is offline. All downstream stages are halted. Please perform a repair."
+      : "✅ Production line is running normally. Conveyor belt is operational, all stages active.";
+  }
+  
+  // 6. Question about a specific machine (by name or ID)
+  else {
+    const machineMatch = MACHINES.find(m => lower.includes(m.name.toLowerCase()) || lower.includes(m.id.toLowerCase()));
+    if (machineMatch) {
+      const m = machineMatch;
+      reply = `🔧 **${m.name} (${m.id})**\n• Status: ${m.status.toUpperCase()}\n• Health: ${m.health}%\n• Temperature: ${m.temp.toFixed(1)}°C ${m.temp > 95 ? '(critical!)' : ''}\n• Vibration: ${m.vibration.toFixed(2)} mm/s\n• Energy: ${m.energyKw} kW\n• Prediction: ${m.prediction}`;
+    } 
+    else if (lower.includes("health") || lower.includes("fleet") || lower.includes("average")) {
+      const avg = Math.round(MACHINES.filter(m => m.status !== "offline").reduce((a, m) => a + m.health, 0) / Math.max(1, MACHINES.filter(m => m.status !== "offline").length));
+      reply = `💚 Average fleet health: ${avg}%. Most healthy: ${MACHINES.filter(m => m.health > 85).map(m => m.name).join(', ') || 'none'}, critical: ${MACHINES.filter(m => m.status === "critical").map(m => m.name).join(', ') || 'none'}.`;
+    }
+    else {
+      // Generic reply using the latest known event
+      const lastEventMsg = eventTimeline[0] ? eventTimeline[0].msg : "no new events";
+      reply = `📡 **Latest system event**: ${lastEventMsg}\nYou can ask me about: fleet health, energy, alerts, production line, or a specific machine (e.g., "Hydraulic Press").`;
+    }
+  }
+  
+  chatMessages.push({ role: "ai", text: reply });
+  const msgDiv = document.getElementById("chat-messages");
+  if (msgDiv) {
+    msgDiv.innerHTML = chatMessages.map(m => `<div class="chat-msg ${m.role}">${m.text}</div>`).join('');
+    msgDiv.scrollTop = msgDiv.scrollHeight;
+  }
+}
+
+function quickChat(q) {
+  const inp = document.getElementById("chat-input");
+  if(inp) { inp.value = q; sendChat(); }
+}
+
+function bindChatEvents() {
+  // Chat events are handled via inline oninput/onclick
+}
+
+// ====================================================================
+//  PAGE EVENT BINDING
+// ====================================================================
+
+function bindPageEvents() {
+  // Machine cards via inline onclick
+  // Filters via inline onclick
+  // Sliders via inline oninput
+  document.querySelectorAll(".bulk-cb").forEach(cb=>{
+    cb.onchange = () => {};
+  });
+}
+
+// ====================================================================
+//  LOGIN PAGE
+// ====================================================================
+
+function renderLogin() {
+  return `<div class="login-screen">
+    <div class="login-card">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="width:56px;height:56px;margin:0 auto 12px;border-radius:14px;background:linear-gradient(135deg,#0e7490,#22d3ee);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;font-size:16px;color:#fff">SF</div>
+        <div style="font-size:22px;font-weight:800;color:#f1f5f9;letter-spacing:-0.02em">SmartFactory</div>
+        <div style="font-size:13px;color:#475569;margin-top:3px;font-family:var(--mono)">IIoT Digital Twin Platform</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <select id="roleSelect" class="login-select">
+          <option>Admin</option><option>Engineer</option><option selected>Technician</option>
+        </select>
+        <input class="login-input" value="operator@factory.io" placeholder="Email">
+        <input class="login-input" type="password" value="••••••••" placeholder="Password">
+        <button id="loginBtn" class="login-btn" style="margin-top:4px">Launch Platform →</button>
+      </div>
+      <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        ${[["8","Machines"],["🏭","Digital Twin"],["🧠","AI Predictions"]].map(([i,l])=>`
+          <div style="text-align:center;padding:10px;background:rgba(34,211,238,0.05);border:1px solid rgba(34,211,238,0.15);border-radius:8px">
+            <div style="font-size:18px">${i}</div>
+            <div style="font-size:10px;color:#475569;margin-top:3px">${l}</div>
+          </div>`).join('')}
+      </div>
+      <div style="margin-top:12px;text-align:center;font-size:10.5px;color:#334155;font-family:var(--mono)">🔧 Technician role enables full repair controls</div>
+    </div>
+  </div>`;
+}
+
+// ====================================================================
+//  BOOTSTRAP
+// ====================================================================
+
+// Initial event timeline entries
+addEventTimeline("🟢","SmartFactory Platform initialized","info");
+addEventTimeline("🔴","Hydraulic Press — critical condition detected","critical");
+addEventTimeline("⚠️","Compressor — oil filter degradation warning","warning");
+addEventTimeline("⚡","Energy monitoring active","info");
+
+// Start
+render();
+</script>
+</body>
+</html>
